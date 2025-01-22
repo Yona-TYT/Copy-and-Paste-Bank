@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black_overlay"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/text6"
+        android:layout_width="279dp"
+        android:layout_height="156dp"
+        android:hint="Test"
+        android:padding="2dp"
+        android:text=""
+        android:textSize="@dimen/txview_h1"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.433"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/butt7" />
+
+    <Button
+        android:id="@+id/butt6"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/button_h1"
+        android:layout_marginTop="10dp"
+        android:padding="2dp"
+
+        android:text="Copiar"
+
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.448"
+        app:layout_constraintStart_toEndOf="@+id/text5"
+        app:layout_constraintTop_toBottomOf="@+id/butt5" />
+
+    <TextView
+        android:id="@+id/text5"
+        android:layout_width="@dimen/txview_wm2"
+        android:layout_height="@dimen/txview_h2"
+        android:layout_marginTop="8dp"
+        android:hint="Monto"
+        android:padding="2dp"
+        android:text=""
+        android:textSize="@dimen/txview_h1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/text4" />
+
+    <Button
+        android:id="@+id/butt5"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/button_h1"
+        android:layout_marginTop="10dp"
+        android:padding="2dp"
+        android:text="Copiar"
+
+        android:textSize="@dimen/inner_text_1"
+
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.448"
+        app:layout_constraintStart_toEndOf="@+id/text4"
+        app:layout_constraintTop_toBottomOf="@+id/butt4" />
+
+    <Button
+        android:id="@+id/butt4"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/button_h1"
+        android:layout_marginTop="10dp"
+
+        android:padding="2dp"
+        android:text="Copiar"
+
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+
+        app:layout_constraintHorizontal_bias="0.448"
+        app:layout_constraintStart_toEndOf="@+id/text3"
+        app:layout_constraintTop_toBottomOf="@+id/butt3" />
+
+    <Button
+        android:id="@+id/butt3"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/button_h1"
+        android:layout_marginTop="10dp"
+
+        android:padding="2dp"
+        android:text="Copiar"
+
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+
+        app:layout_constraintHorizontal_bias="0.448"
+        app:layout_constraintStart_toEndOf="@+id/text2"
+        app:layout_constraintTop_toBottomOf="@+id/butt2" />
+
+    <Button
+        android:id="@+id/butt2"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/button_h1"
+        android:layout_marginTop="20dp"
+        android:padding="2dp"
+        android:text="Copiar"
+
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.450"
+        app:layout_constraintStart_toEndOf="@+id/text1"
+        app:layout_constraintTop_toBottomOf="@+id/butt1" />
+
+    <Button
+        android:id="@+id/butt1"
+        android:layout_width="@dimen/txview_wm"
+        android:layout_height="@dimen/button_h1"
+        android:layout_marginTop="84dp"
+        android:padding="2dp"
+        android:text="Pegar"
+        android:textSize="@dimen/inner_text_1"
+
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="SpUsage" />
+
+    <TextView
+        android:id="@+id/text1"
+        android:layout_width="@dimen/txview_wm2"
+        android:layout_height="@dimen/txview_h2"
+        android:layout_marginTop="20dp"
+        android:hint="Tel. + Area"
+        android:padding="2dp"
+        android:text=""
+        android:textSize="@dimen/txview_h1"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/butt1"
+        tools:ignore="SpUsage" />
+
+    <TextView
+        android:id="@+id/text2"
+        android:layout_width="@dimen/txview_wm2"
+        android:layout_height="@dimen/txview_h2"
+        android:layout_marginTop="8dp"
+        android:hint="Tel. Sin Area"
+        android:padding="2dp"
+        android:text=""
+        android:textSize="@dimen/txview_h1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/text1"
+        tools:ignore="SpUsage" />
+
+    <TextView
+        android:id="@+id/text3"
+        android:layout_width="@dimen/txview_wm2"
+        android:layout_height="@dimen/txview_h2"
+        android:layout_marginTop="8dp"
+        android:hint="Cedula"
+        android:padding="2dp"
+        android:text=""
+        android:textSize="@dimen/txview_h1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/text2"
+        tools:ignore="SpUsage" />
+
+
+    <TextView
+        android:id="@+id/text4"
+        android:layout_width="@dimen/txview_wm2"
+        android:layout_height="@dimen/txview_h2"
+        android:layout_marginTop="8dp"
+        android:hint="Codigo Banco"
+        android:padding="2dp"
+        android:text=""
+        android:textSize="@dimen/txview_h1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/text3"
+        tools:ignore="SpUsage" />
+
+    <Button
+        android:id="@+id/butt7"
+        android:layout_width="@dimen/txview_wm"
+        android:layout_height="@dimen/button_h1"
+        android:layout_marginTop="20dp"
+
+        android:layout_marginEnd="148dp"
+
+        android:padding="2dp"
+        android:text="Copiar Todo"
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/text5"
+        app:layout_constraintVertical_bias="0.0"
+        tools:ignore="SpUsage" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_end="30dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="30dp" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
