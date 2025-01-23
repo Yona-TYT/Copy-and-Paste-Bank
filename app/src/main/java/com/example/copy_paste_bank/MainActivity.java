@@ -209,6 +209,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if(clip != null && clip.getItemCount() > 0){
                 text = Objects.requireNonNull(clipboard.getPrimaryClip()).getItemAt(0).getText().toString().toLowerCase();
             }
+            else{
+                Basic.msg("No se encontraron DATOS!");
+                return;
+            }
             text = text.replaceAll("\\n\\s+", " ");
 
             text = processString(text);
@@ -283,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private String processString(String text){
-        text = text.replaceAll("\\*","");
+        //text = text.replaceAll("\\*","");
         text = text.replaceAll(":","");
         text = text.replaceAll("é","e");
         text = text.replaceAll("ó","o");
@@ -350,7 +354,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //Basic.msg("-> "+gr);
             assert gr != null;
             String grCopy = gr.replaceAll("\\.", "_");
-            text = text.replaceFirst(gr, grCopy);
+            text = text.replaceAll(gr, grCopy);
         }
         //--------------------------------------------------------------------------------
 
@@ -442,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for(String mtype : mTypeList) {
                 String newTx = (mtype+gr).replaceFirst("[a-z]{2,}", mtype);
                 //Basic.msg("-> "+newTx);
-                String pattern = "\\b"+newTx+"\\b";
+                String pattern = "\\b"+Pattern.quote(newTx)+"\\b";
                 p = Pattern.compile(pattern);
                 m = p.matcher(text);
                 if(m.find()){
@@ -478,7 +482,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 text = text.replace(newTx, "");
             }
             for (String newTx : mTypeList) {
-                text = text.replaceAll("(^" + newTx + "$)", "");
+                text = text.replaceAll("(^" + Pattern.quote(newTx) + "$)", "");
             }
             if (text.isEmpty()) {
                 continue;
@@ -487,14 +491,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for (String newTx : mBankList) {
                 String[] strList = newTx.split(";");
 
-                String pattern = "\\b" + text + "\\b";
+                String pattern = "\\b" + Pattern.quote(text) + "\\b";
                 Pattern p = Pattern.compile(pattern);
                 Matcher m = p.matcher(strList[1].toLowerCase());
                 if (m.find()) {
                     return new String[]{strList[0], strList[3]};
                 }
                 for (String ttx : text.split("_")) {
-                    pattern = "\\b" + ttx + "\\b";
+                    pattern = "\\b" + Pattern.quote(ttx) + "\\b";
                     p = Pattern.compile(pattern);
                     m = p.matcher(strList[1].toLowerCase());
                     if (m.find()) {
@@ -505,14 +509,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for (String newTx : mBankList) {
                 String[] strList = newTx.split(";");
 
-                String pattern = "\\b" + text + "\\b";
+                String pattern = "\\b" + Pattern.quote(text) + "\\b";
                 Pattern p = Pattern.compile(pattern);
                 Matcher m = p.matcher(strList[2].toLowerCase());
                 if (m.find()) {
                     return new String[]{strList[0], strList[3]};
                 }
                 for (String ttx : text.split("_")) {
-                    pattern = "\\b" + ttx + "\\b";
+                    pattern = "\\b" + Pattern.quote(ttx) + "\\b";
                     p = Pattern.compile(pattern);
                     m = p.matcher(strList[2].toLowerCase());
                     if (m.find()) {
