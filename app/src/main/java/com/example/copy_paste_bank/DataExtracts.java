@@ -18,7 +18,7 @@ public class DataExtracts {
             "0172;BANCAMIGA;_;Bancamiga",
             "0114;BANCARIBE;_;Bancaribe",
             "0171;ACTIVO;_;Bco. Activo",
-            "0166;AGRICOLA;BA;BAgricola",
+            "0166;AGRICOLA;BA BAV;BAgricola",
             "0175;BDT BICENTENARIO;_;BDT",
             "0128;CARONI;_;Bco. Caroni",
             "0163;DEL_TESORO TESORO;BT;BDTesoro",
