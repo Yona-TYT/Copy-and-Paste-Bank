@@ -41,8 +41,7 @@ public class DataExtracts {
             "0178;N58;_;N58"
     );
 
-    public static String[] mResList = {"","","","",""};
-    public static String mBcoName = "";
+    public static String[] mResList = {"","","","","",""};
 
     public DataExtracts(){
     }
@@ -77,7 +76,7 @@ public class DataExtracts {
         idx = (int)namRes[0];
         if(idx >(-1)) {
             mResList[3] = (String)namRes[1];
-            mBcoName = (String)namRes[2];
+            mResList[5] = (String)namRes[2];
 
             txList.add(txNum[idx]);
             txNum[idx] = "";    //Clear the phone number
@@ -86,7 +85,7 @@ public class DataExtracts {
             String[] bankCode = validateBankName(txList, txAll);
             if(!bankCode[0].isEmpty()){
                 mResList[3] = bankCode[0];
-                mBcoName = bankCode[1];
+                mResList[5] = bankCode[1];
             }
         }
         if(mResList[4].isEmpty()){

@@ -162,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mResList[2] = "";
             mResList[3] = "";
             mResList[4] = "";
+            mResList[5] = "";
             //--------------------------------------
             ClipData clip =  clipboard.getPrimaryClip();
 
@@ -180,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mText1.setText(mResList[0]);
             mText2.setText(mResList[1]);
             mText3.setText(mResList[2]);
-            mText4.setText(mResList[3]+" "+DataExtracts.mBcoName);
+            mText4.setText(mResList[3]+" "+mResList[5]);
             mText5.setText(mResList[4]);
 
             if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && mResList[4].isEmpty()){
