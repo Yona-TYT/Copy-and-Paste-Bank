@@ -41,7 +41,16 @@ public class DataExtracts {
             "0178;N58;_;N58"
     );
 
-    public static String[] mResList = {"","","","","",""};
+    /*
+    0 = Numero de Telefono + Codg. Area
+    1 = Numero de Telefono Sin Codig. Area
+    2 = Cedula de Identidad
+    3 = Codg. Banco
+    4 = Monto con . y ,
+    5 = Nombre Banco
+    6 = Monto solo con ,
+    */
+    public static String[] mResList = {"","","","","","",""};
 
     public DataExtracts(){
     }
@@ -90,6 +99,7 @@ public class DataExtracts {
         }
         if(mResList[4].isEmpty()){
             mResList[4] = validateMonto(txList, clipText);
+            mResList[6] = mResList[4].replaceAll("\\.","");
         }
     }
 
@@ -344,10 +354,8 @@ public class DataExtracts {
         for(String newTx : numList){
             rawTx = rawTx.replace(newTx, "");
         }
-
         Pattern patt = Pattern.compile("((^|_)\\d{1,3}([._]\\d{3})*(,\\d+)?(_|$))");
         Matcher matc = patt.matcher(rawTx);
-
         if(matc.find()){
             String gr = matc.group(1);
             assert gr != null;
@@ -362,6 +370,7 @@ public class DataExtracts {
             }
             grCopy = gr.replaceAll("(^_+)|(_+$)", "");
             grCopy = grCopy.replaceAll("_", ".");
+            grCopy = grCopy.replaceAll("(^)0+", "");
 
             if(!gr.isEmpty()) {
                 rawTx = rawTx.replaceFirst(gr, grCopy);
@@ -375,32 +384,40 @@ public class DataExtracts {
         if (matc.find()) {
             String gr = matc.group(1);
             assert gr != null;
-            String grCopy = gr.replaceAll("_", "");
+            String grCopy = gr.replaceAll("^_|_$", "");
+            grCopy = grCopy.replaceAll("_{2,}", "_");
             rawTx = rawTx.replace(gr, grCopy);
-            //mText6.setText(gr);
         }
 
+        Basic.msg("-> "+rawTx);
+
+        // Procesan con simbolo BS
         patt = Pattern.compile("(bs_[\\d,.]+(\\w|$))");
         matc = patt.matcher(rawTx);
         if (matc.find()) {
             String gr = matc.group(1);
             //Basic.msg("-> "+gr);
             assert gr != null;
-            return gr.replaceAll("[^\\d,.]", "");
+            gr = gr.replaceAll("[^\\d,.]", "");
+            return gr.replaceAll("(^)0+", "");
         }
 
         patt = Pattern.compile("((^|\\w)[\\d,.]+_bs)");
         matc = patt.matcher(rawTx);
         if (matc.find()) {
             String gr = matc.group(1);
-            //Basic.msg("-> "+gr);
+            Basic.msg("-> "+gr);
             assert gr != null;
-            return gr.replaceAll("[^\\d,.]", "");
+            gr = gr.replaceAll("[^\\d,.]", "");
+            return gr.replaceAll("(^)0+", "");
         }
+        //---------------------------------------------------------------
+        Basic.msg("-> "+rawTx);
 
         rawTx = rawTx.replaceAll("[bs]","");
         for(String newTx : rawTx.split("_")){
             newTx = newTx.replaceAll("^[.,]$","");
+            newTx = newTx.replaceAll("(^)0+", "");
             if(!newTx.isEmpty()){
                 return newTx;
             }
