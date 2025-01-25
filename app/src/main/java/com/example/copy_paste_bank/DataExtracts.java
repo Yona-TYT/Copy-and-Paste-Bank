@@ -69,7 +69,7 @@ public class DataExtracts {
             String mType = validateType(clipText);
             txList.add(txNum[idx]);
             mResList[2] = mType.toUpperCase()+txNum[idx].replaceAll("([^0-9])","");
-            txNum[idx] = "";    //Clear the phone number
+            txNum[idx] = "";    //Clear the cedula number
         }
 
         Object[] namRes = validateBankCode(txNum);
@@ -79,7 +79,7 @@ public class DataExtracts {
             mResList[5] = (String)namRes[2];
 
             txList.add(txNum[idx]);
-            txNum[idx] = "";    //Clear the phone number
+            txNum[idx] = "";    //Clear the bank number
         }
         else {
             String[] bankCode = validateBankName(txList, txAll);
@@ -338,27 +338,38 @@ public class DataExtracts {
         }
 
         rawTx = rawTx.replaceAll("([^0-9,.bs_])", "");
-        rawTx = rawTx.replaceAll("(\\Dbs)|(bs\\D)", "bs");
+        rawTx = rawTx.replaceAll("((^|_)[bs](_|$))", "");
+
+        rawTx = rawTx.replaceAll("(\\Dbs)|(bs\\D)", "_bs_");
 
         for(String newTx : numList){
             rawTx = rawTx.replace(newTx, "");
         }
 
-        Pattern patt = Pattern.compile("((^|_)\\d{1,3}(.\\d{3})*(,\\d+)?(_|$))");
+        Pattern patt = Pattern.compile("((^|_)\\d{1,3}([._]\\d{3})*(,\\d+)?(_|$))");
         Matcher matc = patt.matcher(rawTx);
+
         if(matc.find()){
             String gr = matc.group(1);
-            //Basic.msg("-> "+gr);
             assert gr != null;
-            gr = gr.replaceAll("_", "");
             String grCopy = gr.replaceAll("\\D", "");
-
             for(String newTx : numList){
+                //Basic.msg("-> "+newTx);
                 if(newTx.equals(grCopy)){
                     rawTx = rawTx.replaceFirst(gr, "");
+                    gr = "";
+                    break;
                 }
             }
+            grCopy = gr.replaceAll("(^_+)|(_+$)", "");
+            grCopy = grCopy.replaceAll("_", ".");
+
+            if(!gr.isEmpty()) {
+                rawTx = rawTx.replaceFirst(gr, grCopy);
+            }
+            //Basic.msg("-> "+grCopy);
         }
+        //Basic.msg("-> "+rawTx);
 
         patt = Pattern.compile("(bs_+[0-9]|[0-9]_+bs)");
         matc = patt.matcher(rawTx);
@@ -370,7 +381,7 @@ public class DataExtracts {
             //mText6.setText(gr);
         }
 
-        patt = Pattern.compile("(bs[\\d,.]+(\\w|$))");
+        patt = Pattern.compile("(bs_[\\d,.]+(\\w|$))");
         matc = patt.matcher(rawTx);
         if (matc.find()) {
             String gr = matc.group(1);
@@ -379,7 +390,7 @@ public class DataExtracts {
             return gr.replaceAll("[^\\d,.]", "");
         }
 
-        patt = Pattern.compile("((^|\\w)[\\d,.]+bs)");
+        patt = Pattern.compile("((^|\\w)[\\d,.]+_bs)");
         matc = patt.matcher(rawTx);
         if (matc.find()) {
             String gr = matc.group(1);
