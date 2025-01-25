@@ -339,7 +339,6 @@ public class DataExtracts {
 
         rawTx = rawTx.replaceAll("([^0-9,.bs_])", "");
         rawTx = rawTx.replaceAll("((^|_)[bs](_|$))", "");
-
         rawTx = rawTx.replaceAll("(\\Dbs)|(bs\\D)", "_bs_");
 
         for(String newTx : numList){
