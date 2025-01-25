@@ -389,7 +389,7 @@ public class DataExtracts {
             rawTx = rawTx.replace(gr, grCopy);
         }
 
-        Basic.msg("-> "+rawTx);
+        //Basic.msg("-> "+rawTx);
 
         // Procesan con simbolo BS
         patt = Pattern.compile("(bs_[\\d,.]+(\\w|$))");
@@ -406,13 +406,13 @@ public class DataExtracts {
         matc = patt.matcher(rawTx);
         if (matc.find()) {
             String gr = matc.group(1);
-            Basic.msg("-> "+gr);
+            //Basic.msg("-> "+gr);
             assert gr != null;
             gr = gr.replaceAll("[^\\d,.]", "");
             return gr.replaceAll("(^)0+", "");
         }
         //---------------------------------------------------------------
-        Basic.msg("-> "+rawTx);
+        //Basic.msg("-> "+rawTx);
 
         rawTx = rawTx.replaceAll("[bs]","");
         for(String newTx : rawTx.split("_")){
