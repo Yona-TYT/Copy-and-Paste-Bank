@@ -162,13 +162,23 @@ public class DataExtracts {
             m = patt.matcher(text);
         }
 
-        patt = Pattern.compile("([a-z]\\.[a-z])");
+        patt = Pattern.compile("([a-z][.,=][a-z])");
         m = patt.matcher(text);
         if (m.find()) {
             String gr = m.group(1);
             //Basic.msg("-> "+gr);
             assert gr != null;
-            String grCopy = gr.replaceAll("\\.", "_");
+            String grCopy = gr.replaceAll("[.,=]", "_");
+            text = text.replaceAll(gr, grCopy);
+        }
+
+        patt = Pattern.compile("(([a-z][.,=][0-9])|([0-9][.,=][a-z]))");
+        m = patt.matcher(text);
+        if (m.find()) {
+            String gr = m.group(1);
+            //Basic.msg("-> "+gr);
+            assert gr != null;
+            String grCopy = gr.replaceAll("[.,=]", "_");
             text = text.replaceAll(gr, grCopy);
         }
         //--------------------------------------------------------------------------------
@@ -208,6 +218,21 @@ public class DataExtracts {
             String grCopy = gr.replaceAll("\\s", "");
             text = text.replace(gr, grCopy);
         }
+
+        for(String mtype : mTypeList) {
+            //Basic.msg("-> "+newTx);
+            patt = Pattern.compile("([^a-z]"+mtype+"[^a-z])");
+            m = patt.matcher(text);
+            if(m.find()){
+                String gr = m.group(1);
+                //Basic.msg("-> "+gr);
+                assert gr != null;
+                String grCopy = gr.replaceAll(mtype, " "+mtype);
+                text = text.replaceAll(gr, grCopy);
+                break;
+            }
+        }
+        //Basic.msg("-> "+text);
         return text;
     }
 
@@ -242,6 +267,7 @@ public class DataExtracts {
     private static int validateID(String[] list) {
         for (int i = 0; i< list.length ; i++){
             String text = list[i];
+            //Basic.msg("-> "+text);
             text = text.replaceAll("\\W", "");
             if(text.length() > 5 && text.length() < 10){
                 return i;
@@ -341,7 +367,7 @@ public class DataExtracts {
     }
 
     private static String validateMonto(List<String> numList, String rawTx) {
-        String[] mony = {"monto_bs","bs","bolos","bsf","bolivares","monto"};
+        String[] mony = {"monto_bs","bs","bs.","bolos","bsf","bolivares","monto"};
         rawTx = rawTx.replaceAll("([\\n\\s])", "_");
         for(String newTx:mony){
             rawTx = rawTx.replaceAll(newTx, "bs");
@@ -349,7 +375,8 @@ public class DataExtracts {
 
         rawTx = rawTx.replaceAll("([^0-9,.bs_])", "");
         rawTx = rawTx.replaceAll("((^|_)[bs](_|$))", "");
-        rawTx = rawTx.replaceAll("(\\Dbs)|(bs\\D)", "_bs_");
+
+        //Basic.msg("-> "+rawTx);
 
         for(String newTx : numList){
             rawTx = rawTx.replace(newTx, "");
@@ -377,6 +404,8 @@ public class DataExtracts {
             }
             //Basic.msg("-> "+grCopy);
         }
+        rawTx = rawTx.replaceAll("bs", "_bs_");
+
         //Basic.msg("-> "+rawTx);
 
         patt = Pattern.compile("(bs_+[0-9]|[0-9]_+bs)");
@@ -399,8 +428,13 @@ public class DataExtracts {
             //Basic.msg("-> "+gr);
             assert gr != null;
             gr = gr.replaceAll("[^\\d,.]", "");
-            return gr.replaceAll("(^)0+", "");
+            gr = gr.replaceAll("(^)0+", "");
+            gr = gr.replaceAll("(^),", "0,");
+            gr = gr.replaceAll("[,.]$|^[,.]", "");
+            return gr;
         }
+
+        //Basic.msg("-> "+rawTx);
 
         patt = Pattern.compile("((^|\\w)[\\d,.]+_bs)");
         matc = patt.matcher(rawTx);
@@ -409,14 +443,17 @@ public class DataExtracts {
             //Basic.msg("-> "+gr);
             assert gr != null;
             gr = gr.replaceAll("[^\\d,.]", "");
-            return gr.replaceAll("(^)0+", "");
+            gr = gr.replaceAll("(^)0+", "");
+            gr = gr.replaceAll("(^),", "0,");
+            gr = gr.replaceAll("[,.]$|^[,.]", "");
+            return gr;
         }
         //---------------------------------------------------------------
         //Basic.msg("-> "+rawTx);
 
         rawTx = rawTx.replaceAll("[bs]","");
         for(String newTx : rawTx.split("_")){
-            newTx = newTx.replaceAll("^[.,]$","");
+            newTx = newTx.replaceAll("[,.]$|^[,.]", "");
             newTx = newTx.replaceAll("(^)0+", "");
             if(!newTx.isEmpty()){
                 return newTx;

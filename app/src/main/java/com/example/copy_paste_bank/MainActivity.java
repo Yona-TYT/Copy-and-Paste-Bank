@@ -189,9 +189,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             else {
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
-
-                //clipboard.setPrimaryClip(clipData);
-                //Basic.msg("Pegado y copiado al portapapeles.");
+                clipboard.setPrimaryClip(clipData);
+                Basic.msg("Pegado y copiado al portapapeles.");
             }
         }
     }
