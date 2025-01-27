@@ -109,6 +109,7 @@ public class DataExtracts {
         text = text.replaceAll("é","e");
         text = text.replaceAll("ó","o");
         text = text.replaceAll("í","i");
+        text = text.replaceAll("(\\s\\n)", " ");
         text = text.replaceAll("(\\+580)|(\\+58\\s)|(\\+58)", "0");
         text = text.replaceAll("(\\+580)|(\\+58\\s)|(\\+58)", "0");
 
@@ -200,7 +201,6 @@ public class DataExtracts {
             text = text.replaceFirst("([0-9]{4})(\\s)([0-9]{7})", gr);
             m = patt.matcher(text);
         }
-        //----------------------------------------------------------------
 
         patt = Pattern.compile("(\\s[0-9]{4})(\\s)([0-9]{7})");
         m = patt.matcher(text);
@@ -210,7 +210,10 @@ public class DataExtracts {
             m = patt.matcher(text);
         }
 
-        patt = Pattern.compile("(\\d{1,3}(\\s\\d{1,3}){2,3})");
+        //----------------------------------------------------------------
+
+        //Espacio entre cifras ---------------------------------------
+        patt = Pattern.compile("(\\d{1,3}(([^\\n\\w])\\d{3}){2,3})");
         m = patt.matcher(text);
         if (m.find()) {
             String gr = m.group(1);
@@ -218,6 +221,8 @@ public class DataExtracts {
             String grCopy = gr.replaceAll("\\s", "");
             text = text.replace(gr, grCopy);
         }
+
+        //----------------------------------------------------------------
 
         for(String mtype : mTypeList) {
             //Basic.msg("-> "+newTx);
@@ -430,7 +435,7 @@ public class DataExtracts {
             gr = gr.replaceAll("[^\\d,.]", "");
             gr = gr.replaceAll("(^)0+", "");
             gr = gr.replaceAll("(^),", "0,");
-            gr = gr.replaceAll("[,.]$|^[,.]", "");
+            gr = gr.replaceAll("[,.]+$|^[,.]+", "");
             return gr;
         }
 
@@ -445,7 +450,7 @@ public class DataExtracts {
             gr = gr.replaceAll("[^\\d,.]", "");
             gr = gr.replaceAll("(^)0+", "");
             gr = gr.replaceAll("(^),", "0,");
-            gr = gr.replaceAll("[,.]$|^[,.]", "");
+            gr = gr.replaceAll("[,.]+$|^[,.]+", "");
             return gr;
         }
         //---------------------------------------------------------------
@@ -453,7 +458,7 @@ public class DataExtracts {
 
         rawTx = rawTx.replaceAll("[bs]","");
         for(String newTx : rawTx.split("_")){
-            newTx = newTx.replaceAll("[,.]$|^[,.]", "");
+            newTx = newTx.replaceAll("[,.]+$|^[,.]+", "");
             newTx = newTx.replaceAll("(^)0+", "");
             if(!newTx.isEmpty()){
                 return newTx;
