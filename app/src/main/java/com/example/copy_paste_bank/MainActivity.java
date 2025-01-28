@@ -14,8 +14,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -35,7 +40,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private TextView mText6; //Test only
 
-    String[] mResList = DataExtracts.mResList;
+    public String[] mResList = DataExtracts.mResList;
+    public String[] mDebug = DataExtracts.mDebug;
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -163,6 +170,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mResList[3] = "";
             mResList[4] = "";
             mResList[5] = "";
+            mDebug[0] = "";
             //--------------------------------------
             ClipData clip =  clipboard.getPrimaryClip();
 
@@ -178,20 +186,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             DataExtracts.startinProcess(text);
 
-            mText1.setText(mResList[0]);
-            mText2.setText(mResList[1]);
-            mText3.setText(mResList[2]);
-            mText4.setText(mResList[3]+" "+mResList[5]);
-            mText5.setText(mResList[4]);
-
+            mText1.setText(formatPhone(mResList[0]));    //Telf + Area
+            mText2.setText(mResList[1]);    // Telf
+            mText3.setText(formatNumber(mResList[2], true));    // Cedula
+            mText4.setText(mResList[3]+" "+mResList[5]);    // Codig Banco
+            mText5.setText(formatNumber(mResList[4], false));    //Monto
+            mText6.setText(mDebug[0]);
             if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && mResList[4].isEmpty()){
                 Basic.msg("No se encontraron DATOS!");
             }
             else {
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
-                //clipboard.setPrimaryClip(clipData);
-                //Basic.msg("Pegado y copiado al portapapeles.");
+                clipboard.setPrimaryClip(clipData);
+                Basic.msg("Pegado y copiado al portapapeles.");
             }
         }
     }
+    public String formatNumber(String str, boolean id) {
+        if(str.isEmpty()){
+            return "";
+        }
+        String type = "";
+
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.forLanguageTag("ES"));
+        DecimalFormat formatter = (DecimalFormat) nf;
+
+        if(id) {
+            type += str.charAt(0);
+            str = str.replaceAll("\\D", "");
+            if(str.startsWith("0")){
+                return type+str;
+            }
+            formatter.applyPattern("###,###.##");
+        }
+        else {
+            formatter.applyPattern("###,##0.00");
+        }
+        str = str.replaceAll("\\.", "");
+        str = str.replaceAll(",", ".");
+
+        return  type+formatter.format(Float.parseFloat(str));
+    }
+    public String formatPhone(String str) {
+        if(str.isEmpty()){
+            return "";
+        }
+        return str.substring(0, 4)+"-"+str.substring(4);
+    }
 }
+

@@ -9,6 +9,62 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/textV5"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/txview_h1"
+        android:layout_marginTop="8dp"
+        android:padding="2dp"
+        android:text="Monto"
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/text4"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/textV4"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/txview_h1"
+        android:layout_marginTop="8dp"
+        android:padding="2dp"
+        android:text="Codg. Banco"
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/text3"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/textV3"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/txview_h1"
+        android:layout_marginTop="8dp"
+        android:padding="2dp"
+        android:text="Cedula"
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/text2"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/textV2"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/txview_h1"
+        android:layout_marginTop="8dp"
+        android:padding="2dp"
+        android:text="Tel sin Cod. Area"
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/text1"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
         android:id="@+id/text6"
         android:layout_width="279dp"
         android:layout_height="156dp"
@@ -16,7 +72,7 @@
         android:padding="2dp"
         android:text=""
         android:textSize="@dimen/txview_h1"
-        android:visibility="invisible"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.433"
@@ -27,7 +83,7 @@
         android:id="@+id/butt6"
         android:layout_width="@dimen/button_ws"
         android:layout_height="@dimen/button_h1"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="28dp"
         android:padding="2dp"
 
         android:text="Copiar"
@@ -42,21 +98,20 @@
         android:id="@+id/text5"
         android:layout_width="@dimen/txview_wm2"
         android:layout_height="@dimen/txview_h2"
-        android:layout_marginTop="8dp"
-        android:hint="Monto"
+        android:hint="0.000,00"
         android:padding="2dp"
         android:text=""
         android:textSize="@dimen/txview_h1"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/text4" />
+        app:layout_constraintTop_toBottomOf="@+id/textV5" />
 
     <Button
         android:id="@+id/butt5"
         android:layout_width="@dimen/button_ws"
         android:layout_height="@dimen/button_h1"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="28dp"
         android:padding="2dp"
         android:text="Copiar"
 
@@ -71,7 +126,7 @@
         android:id="@+id/butt4"
         android:layout_width="@dimen/button_ws"
         android:layout_height="@dimen/button_h1"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="28dp"
 
         android:padding="2dp"
         android:text="Copiar"
@@ -87,7 +142,7 @@
         android:id="@+id/butt3"
         android:layout_width="@dimen/button_ws"
         android:layout_height="@dimen/button_h1"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="28dp"
 
         android:padding="2dp"
         android:text="Copiar"
@@ -103,7 +158,7 @@
         android:id="@+id/butt2"
         android:layout_width="@dimen/button_ws"
         android:layout_height="@dimen/button_h1"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="37dp"
         android:padding="2dp"
         android:text="Copiar"
 
@@ -132,59 +187,55 @@
         android:id="@+id/text1"
         android:layout_width="@dimen/txview_wm2"
         android:layout_height="@dimen/txview_h2"
-        android:layout_marginTop="20dp"
-        android:hint="Tel. + Area"
+        android:hint="0400-1234567"
         android:padding="2dp"
         android:text=""
         android:textSize="@dimen/txview_h1"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/butt1"
+        app:layout_constraintTop_toBottomOf="@+id/textV1"
         tools:ignore="SpUsage" />
 
     <TextView
         android:id="@+id/text2"
         android:layout_width="@dimen/txview_wm2"
         android:layout_height="@dimen/txview_h2"
-        android:layout_marginTop="8dp"
-        android:hint="Tel. Sin Area"
+        android:hint="1234567"
         android:padding="2dp"
         android:text=""
         android:textSize="@dimen/txview_h1"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/text1"
+        app:layout_constraintTop_toBottomOf="@+id/textV2"
         tools:ignore="SpUsage" />
+
 
     <TextView
         android:id="@+id/text3"
         android:layout_width="@dimen/txview_wm2"
         android:layout_height="@dimen/txview_h2"
-        android:layout_marginTop="8dp"
-        android:hint="Cedula"
+        android:hint="V0.000.000"
         android:padding="2dp"
         android:text=""
         android:textSize="@dimen/txview_h1"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/text2"
+        app:layout_constraintTop_toBottomOf="@+id/textV3"
         tools:ignore="SpUsage" />
-
 
     <TextView
         android:id="@+id/text4"
         android:layout_width="@dimen/txview_wm2"
         android:layout_height="@dimen/txview_h2"
-        android:layout_marginTop="8dp"
-        android:hint="Codigo Banco"
+        android:hint="0000 Banco"
         android:padding="2dp"
         android:text=""
         android:textSize="@dimen/txview_h1"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/text3"
+        app:layout_constraintTop_toBottomOf="@+id/textV4"
         tools:ignore="SpUsage" />
 
     <Button
@@ -219,6 +270,20 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_begin="30dp" />
+
+    <TextView
+        android:id="@+id/textV1"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/txview_h1"
+        android:layout_marginTop="20dp"
+        android:padding="2dp"
+        android:text="Tel + Cod. Area"
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/butt1"
+        tools:ignore="MissingConstraints" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
