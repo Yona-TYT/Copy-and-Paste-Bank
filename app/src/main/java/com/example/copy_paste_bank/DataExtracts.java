@@ -13,32 +13,32 @@ public class DataExtracts {
     private static final List<String> mTypeList = Arrays.asList("v","j","g","p","e","r","c" );
     private static final List<String> mAreaList = Arrays.asList("0426", "0416", "0414", "0412", "0424");
     private static final List<String> mBankList = Arrays.asList(
-            "0102;BDV VENEZUELA DE_VENEZUELA;VNZ;Venezuela",
+            "0102;BDV DE_VENEZUELA;VNZ VENEZUELA;Venezuela",
             "0156;100%;100%_BANCO;100%Banco",
-            "0172;BANCAMIGA;_;Bancamiga",
-            "0114;BANCARIBE;_;Bancaribe",
-            "0171;ACTIVO;_;Bco. Activo",
+            "0172;BANCAMIGA;|;Bancamiga",
+            "0114;BANCARIBE;|;Bancaribe",
+            "0171;ACTIVO;|;Bco. Activo",
             "0166;AGRICOLA;BA BAV;BAgricola",
             "0175;BDT BICENTENARIO;TRABAJADORES;BDT",
-            "0128;CARONI;_;Bco. Caroni",
-            "0163;DEL_TESORO TESORO;BT;BDTesoro",
+            "0128;CARONI;|;Bco. Caroni",
+            "0163;DEL_TESORO;BT TESORO;BDTesoro",
             "0115;EXTERIOR;BE;BExterior",
-            "0151;FONDO_COMUN;BFC;BFC",
-            "0173;INTERNACIONAL DE_DESARROLLO DESARROLLO;BID;B.I.D",
+            "0151;FONDO_COMUN;BFC FONDO;BFC",
+            "0173;DE_DESARROLLO;BID DESARROLLO INTERNACIONAL;B.I.D",
             "0105;MERCANTIL;BM;Mercantil",
-            "0191;BNC NACIONAL_DE_CREDITO;_;BNC",
+            "0191;BNC NACIONAL_DE_CREDITO;|;BNC",
             "0138;BANCO_PLAZA;PLAZA;Bco. Plaza",
-            "0137;SOFITASA;_;Sofitasa",
-            "0104;BVDC VENEZOLANO_DE_CREDITO VENEZOLANO;_;BVDC",
+            "0137;SOFITASA;|;Sofitasa",
+            "0104;BVDC VENEZOLANO_DE_CREDITO;VENEZOLANO;BVDC",
             "0168;BANCRECER;BC;Bancrecer",
-            "0134;BANESCO;_;Banesco",
+            "0134;BANESCO;|;Banesco",
             "0177;BANFANB BANFAN;FUERZA ARMADA;Banfanb",
-            "0146;BANGENTE;_;Bangente",
+            "0146;BANGENTE;|;Bangente",
             "0174;BANPLUS;BAN+ BPLUS;BanPlus",
             "0108;BBVA PROVINCIAL;BP;Provincial",
-            "0157;DELSUR;_;Bco. DelSur",
-            "0169;MI_BANCO MIBANCO;R4;R4",
-            "0178;N58;_;N58"
+            "0157;DELSUR;|;Bco. DelSur",
+            "0169;MIBANCO;MI_BANCO R4;R4",
+            "0178;|;N58;N58"
     );
 
     /*
@@ -62,8 +62,9 @@ public class DataExtracts {
         clipText = processString(clipText);
 
         String mSpl = " ";
-        String[] txAll = clipText.split(mSpl);
-        String[] txNum = clipText.replaceAll("([^0-9\\s])","").split(mSpl);
+        String copyTx = clipText.replaceAll("((_\\|_)+)|(\\|+)", " ");
+        String[] txAll = copyTx.split(mSpl);
+        String[] txNum = copyTx.replaceAll("([^0-9\\s])","").split(mSpl);
 
         List<String> txList = new ArrayList<>();
         int idx = validatePhoneNumber(txNum);
@@ -80,8 +81,10 @@ public class DataExtracts {
             txNum[idx] = "";    //Clear the cedula number
         }
 
-        Object[] namRes = validateBankCode(txNum);
+        Object[] namRes = validateBankCode(txAll);
         idx = (int)namRes[0];
+        //Basic.msg("->? "+idx);
+
         if(idx >(-1)) {
             mResList[3] = (String)namRes[1];
             mResList[5] = (String)namRes[2];
@@ -119,11 +122,10 @@ public class DataExtracts {
             String gr = m.group(1);
             //Basic.msg("-> "+gr);
             assert gr != null;
-            String copyTx = gr.replaceAll("\\n"," |_");
+            String copyTx = gr.replaceAll("\\n","_|_");
             rawTx = rawTx.replaceAll(gr, copyTx);
 
         }
-
         rawTx = rawTx.replaceAll("(\\s+\\n|\\n\\s+)", " ");
         rawTx = rawTx.replaceAll("\\n", " ");
         rawTx = rawTx.replaceAll("\\s+", " ");
@@ -144,8 +146,6 @@ public class DataExtracts {
             }
         }
         //------------------------------------------------------------------------------
-
-
 
         //Elimina caracteres inutiles --------------------------------------------------
         patt = Pattern.compile("(\\w,\\s)");
@@ -208,16 +208,16 @@ public class DataExtracts {
             rawTx = rawTx.replaceFirst("([a-z]{2,})(\\s)([a-z]{2,})", gr);
             m = patt.matcher(rawTx);
         }
+        //mDebug[0] = rawTx;
 
         //Espacio entre numeros de telefono -----------------------------
-        patt = Pattern.compile("((^|\\s)([0-9]{4})(\\s)([0-9]{7}(\\s|$)))");
+        patt = Pattern.compile("((^|[\\s_])([0-9]{4})(\\s)([0-9]{7}([\\s_]|$)))");
         m = patt.matcher(rawTx);
         if (m.find()) {
             String gr = m.group(1);
             assert gr != null;
             //Basic.msg("-> "+gr);
-            //String //grCopy = gr.replaceAll("(^\\s|$\\s)", " ");
-            String grCopy = gr.replaceAll("\\s+", "");
+            String grCopy = gr.replaceAll("[\\s_]+", "");
             for (String newTx : mAreaList) {
                 //Basic.msg("-> "+grCopy);
                 if (grCopy.startsWith(newTx)) {
@@ -230,28 +230,29 @@ public class DataExtracts {
         //----------------------------------------------------------------
 
         //Espacio entre montos ---------------------------------------
-        patt = Pattern.compile("((^|\\s|[a-z])(\\d{1,3}(([^\\n\\w])\\d{3}){1,3})(\\s|$))");
+        patt = Pattern.compile("((^|[\\sa-z_])(\\d{1,3}(\\s\\d{3}){1,3})([\\s_.,]|$))");
         m = patt.matcher(rawTx);
         if (m.find()) {
             String gr = m.group(1);
             //Basic.msg("-> "+gr);
             assert gr != null;
             String grCopy = gr.replaceAll("\\s", "");
-            rawTx = rawTx.replace(gr, " "+grCopy+" ");
+            rawTx = rawTx.replace(gr, grCopy);
         }
         //--------------------------------------------------------------
 
-        //Espacio entre cifras ---------------------------------------
-        patt = Pattern.compile("((^|\\s|[a-z])(\\d{1,3}(([^\\n\\w])\\d{3}){1,3})(\\s|$))");
-        m = patt.matcher(rawTx);
-        if (m.find()) {
-            String gr = m.group(1);
-            //Basic.msg("-> "+gr);
-            assert gr != null;
-            String grCopy = gr.replaceAll("\\s", "");
-            rawTx = rawTx.replace(gr, " "+grCopy+" ");
-        }
-        //----------------------------------------------------------------
+
+//        //Espacio entre cifras ---------------------------------------
+//        patt = Pattern.compile("((^|\\s|[a-z])(\\d{1,3}(([^\\n\\w])\\d{3}){1,3})(\\s|$))");
+//        m = patt.matcher(rawTx);
+//        if (m.find()) {
+//            String gr = m.group(1);
+//            //Basic.msg("-> "+gr);
+//            assert gr != null;
+//            String grCopy = gr.replaceAll("\\s", "");
+//            rawTx = rawTx.replace(gr, " "+grCopy+" ");
+//        }
+//        //----------------------------------------------------------------
 
         for(String mtype : mTypeList) {
             //Basic.msg("-> "+newTx);
@@ -266,6 +267,8 @@ public class DataExtracts {
                 break;
             }
         }
+        mDebug[0] = rawTx;
+
         //Basic.msg("-> "+text);
         return rawTx;
     }
@@ -332,9 +335,14 @@ public class DataExtracts {
     private static Object[] validateBankCode(String[] list) {
         for (int i = 0; i< list.length ; i++){
             String text = list[i];
-            //Basic.msg("-> "+text);
 
             text = text.replaceAll("\\W", "");
+            if(text.isEmpty()){
+                continue;
+
+            }
+            //Basic.msg("-> "+text);
+
             if(text.length() == 4 && text.startsWith("01")){
                 for(String mCode : mBankList){
                     String code = mCode.split(";")[0];
@@ -360,6 +368,8 @@ public class DataExtracts {
             if (text.isEmpty()) {
                 continue;
             }
+
+            //Basic.msg("->? "+text);
 
             for (String newTx : mBankList) {
                 String[] strList = newTx.split(";");

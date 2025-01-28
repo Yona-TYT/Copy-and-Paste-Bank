@@ -161,6 +161,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
+        //Boton Pegar
         if (itemId == R.id.butt1){
 
             //Se limpian los valores residuales
@@ -171,6 +172,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mResList[4] = "";
             mResList[5] = "";
             mDebug[0] = "";
+
+            mText1.setText("");     // Telf + Area
+            mText2.setText("");     // Telf
+            mText3.setText("");     // Cedula
+            mText4.setText("");     // Codig Banco
+            mText5.setText("");     // Monto
+            mText6.setText("");
             //--------------------------------------
             ClipData clip =  clipboard.getPrimaryClip();
 
@@ -186,11 +194,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             DataExtracts.startinProcess(text);
 
-            mText1.setText(formatPhone(mResList[0]));    //Telf + Area
-            mText2.setText(mResList[1]);    // Telf
+            mText1.setText(formatPhone(mResList[0]));              //Telf + Area
+            mText2.setText(mResList[1]);                           // Telf
             mText3.setText(formatNumber(mResList[2], true));    // Cedula
-            mText4.setText(mResList[3]+" "+mResList[5]);    // Codig Banco
-            mText5.setText(formatNumber(mResList[4], false));    //Monto
+            mText4.setText(mResList[3]+" "+mResList[5]);           // Codig Banco
+            mText5.setText(formatNumber(mResList[4], false));   //Monto
             mText6.setText(mDebug[0]);
             if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && mResList[4].isEmpty()){
                 Basic.msg("No se encontraron DATOS!");
