@@ -106,6 +106,10 @@ public class DataExtracts {
     }
 
     private static String processString(String rawTx){
+        rawTx = getSimple(rawTx);
+
+        //Basic.msg(rawTx);
+
         //text = text.replaceAll("\\*","");
         rawTx = rawTx.replaceAll(":","");
         rawTx = rawTx.replaceAll("é","e");
@@ -128,7 +132,7 @@ public class DataExtracts {
         }
         rawTx = rawTx.replaceAll("(\\s+\\n|\\n\\s+)", " ");
         rawTx = rawTx.replaceAll("\\n", " ");
-        rawTx = rawTx.replaceAll("\\s+", " ");
+        rawTx = rawTx.replaceAll("(\\.\\s)|(\\s+)", " ");
 
         //Elimina posibles "o" en numeros -----------------------------------------------
         patt = Pattern.compile("(o[0-9]{3})");
@@ -211,7 +215,7 @@ public class DataExtracts {
         //mDebug[0] = rawTx;
 
         //Espacio entre numeros de telefono -----------------------------
-        patt = Pattern.compile("((^|[\\s_])([0-9]{4})(\\s)([0-9]{7}([\\s_]|$)))");
+        patt = Pattern.compile("((^|[\\s_])([0-9]{4})(\\s)([0-9\\s]{7,9}([\\s_]|$)))");
         m = patt.matcher(rawTx);
         if (m.find()) {
             String gr = m.group(1);
@@ -220,7 +224,7 @@ public class DataExtracts {
             String grCopy = gr.replaceAll("[\\s_]+", "");
             for (String newTx : mAreaList) {
                 //Basic.msg("-> "+grCopy);
-                if (grCopy.startsWith(newTx)) {
+                if (grCopy.startsWith(newTx) && grCopy.length()==11) {
                     //Basic.msg("-> "+grCopy);
                     rawTx = rawTx.replaceAll(gr, " "+grCopy+" ") ;
                     break;
@@ -513,4 +517,27 @@ public class DataExtracts {
         }
         return "";
     }
+    private static String getSimple(String rawTx) {
+        int count = rawTx.replaceAll("[^\\n]", "").length();
+        if(count == 2 || count == 3) {
+            boolean res = true;
+            String tx = "";
+            for(String newTx : rawTx.split("\\n")){
+                int siz = newTx.length();
+                if(siz < 2 || siz > 16 ){
+                    //Basic.msg(""+count);
+                    res = false;
+                    break;
+                }
+                tx += newTx.replaceAll("[\\s-.]+","")+" ";
+            }
+            if(res){
+                //Basic.msg("-> "+tx);
+                return tx;
+            }
+        }
+        return rawTx;
+    }
+
+
 }

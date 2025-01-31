@@ -17,5 +17,6 @@
     <color name="float_button">#5c5c5c</color>
     <color name="inner_button">#FFFFFF</color>
     <color name="black_overlay">#1E201E</color>
+    <color name="text_hint">#646060</color>
 
 </resources>
