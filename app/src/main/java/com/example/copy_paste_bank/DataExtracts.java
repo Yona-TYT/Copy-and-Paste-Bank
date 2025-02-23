@@ -415,7 +415,7 @@ public class DataExtracts {
 
     private static String validateMonto(List<String> numList, String rawTx) {
 
-        String[] mony = {"monto_bs","bs","bs.","bolos","bsf","bolivares","monto"};
+        String[] mony = {"monto_bs","bs","bs.","bolos","bsf","bolivares","monto", "dolar", "verdes", "dolares", "$"};
 
         rawTx = rawTx.replaceAll("([\\n\\s])", "_");
         for(String newTx:mony){

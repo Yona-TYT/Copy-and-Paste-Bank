@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView mText7;
 
     private Spinner mSpin1;
-    private List<String> mSpinL1 = Arrays.asList("BCV", "Paralelo");
+    private List<String> mSpinL1 = Arrays.asList("BCV", "Paralelo", "Promedio");
     private int currSel1 = 0;
 
     private Switch mSw1;
@@ -100,24 +100,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mSw1.setChecked(false);
 
-        //Para la lista del selector Tipo Moneda ------------------------------------------------------
+        GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mText7);
+        try {
+            GetDollar.urlRun();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        //Para la lista de Monjitores de dolar ------------------------------------------------------
         SelecAdapter adapt1 = new SelecAdapter(this, mSpinL1);
         mSpin1.setAdapter(adapt1);
         //mSpin1.setSelection(currSel1); //Set La Moneda como default
         mSpin1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 currSel1 = i;
                 mSw1.setChecked(false);
                 isConv = false;
                 mText5.setText(formatNumber(mResList[4], false));   //Monto
+                mText7.setText(Basic.setFormatter(GetDollar.mDollar.get(i))+" Bs");
 
-                GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, i , mText7);
-                try {
-                    GetDollar.urlRun();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
             }
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
@@ -142,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (itemId == R.id.switch1) {
             isConv = !isConv;
 
-            if(GetDollar.getPrice() <= 0){
+            if(GetDollar.getPrice(currSel1) <= 0){
                 isConv = false;
                 mSw1.setChecked(false);
                 Basic.msg("Error obteniendo precio del DOLAR");
@@ -170,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     } catch (ParseException e) {
                         throw new RuntimeException(e);
                     }
-                    value *= GetDollar.getPrice();
+                    value *= GetDollar.getPrice(currSel1);
                     mText5.setText(Basic.setFormatter(value));   //Monto
 
                     ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + Basic.setFormatter(value));
@@ -296,9 +300,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Basic.msg("No se encontraron DATOS!");
             }
             else {
+                //Se apaga el sw
+                isConv = false;
+                mSw1.setChecked(false);
+
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
                 clipboard.setPrimaryClip(clipData);
                 Basic.msg("Pegado y copiado al portapapeles.");
+
             }
         }
     }

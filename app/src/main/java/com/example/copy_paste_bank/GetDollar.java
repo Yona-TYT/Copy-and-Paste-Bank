@@ -2,6 +2,7 @@ package com.example.copy_paste_bank;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.fragment.app.FragmentActivity;
@@ -24,33 +25,50 @@ public class GetDollar {
 
     private static Context mContext;
     private static FragmentActivity mActivity;
-    private static int mSelec;
+    private static Spinner mSpinner;
     private static TextView mTextView;
 
-    private static float mDollar = 0;
+    public static List<Float> mDollar = Arrays.asList((float)0, (float)0, (float)0);
 
 
-    static List<String> mUrl = Arrays.asList("https://pydolarve.org/api/v1/dollar?page=bcv", "https://pydolarve.org/api/v1/dollar?page=enparalelovzla");
-    static List<String> mkey = Arrays.asList("usd", "enparalelovzla");
+    static List<String> mUrl = Arrays.asList("https://pydolarve.org/api/v1/dollar?page=bcv", "https://pydolarve.org/api/v1/dollar?page=enparalelovzla", "https://pydolarve.org/api/v1/dollar?page=criptodolar");
+    static List<String> mkey = Arrays.asList("usd", "enparalelovzla", "promedio");
 
-    public GetDollar(Context applicationContext, FragmentActivity mActivity, int mSelec, TextView mTextView) {
+    public GetDollar(Context mContext, FragmentActivity mActivity, Spinner mSpinner, TextView mTextView) {
         this.mContext = mContext;
         this.mActivity = mActivity;
-        this.mSelec = mSelec;
+        this.mSpinner = mSpinner;
         this.mTextView = mTextView;
     }
 
-    public static float getPrice(){
-        return GetDollar.mDollar;
+    public static float getPrice(int idx){
+        return GetDollar.mDollar.get(idx);
     }
 
     public static void urlRun() throws IOException {
 
-        OkHttpClient client = new OkHttpClient();
-
+        int idx = 0;
         Request request = new Request.Builder()
-                .url(mUrl.get(mSelec))
+                .url(mUrl.get(idx))
                 .build();
+        setRequest( request, idx);
+
+        idx = 1;
+        request = new Request.Builder()
+                .url(mUrl.get(idx))
+                .build();
+        setRequest( request, idx);
+
+        idx = 2;
+        request = new Request.Builder()
+                .url(mUrl.get(idx))
+                .build();
+        setRequest( request, idx);
+    }
+
+    public static void setRequest(Request request, int idx){
+
+        OkHttpClient client = new OkHttpClient();
 
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -63,36 +81,48 @@ public class GetDollar {
 
                 final String myResponse = response.body().string();
 
-                mActivity.runOnUiThread(new Runnable() {
-                    @SuppressLint("SetTextI18n")
-                    @Override
-                    public void run() {
-                        try {
-                            //JSONObject json = new JSONObject(myResponse);
-                            JSONObject json = new JSONObject(myResponse);
-                            Iterator<String> mKeysA = json.keys();
-                            for (; mKeysA.hasNext(); ) {
-                                String mObjA = mKeysA.next();
-                                JSONObject newJson = json.getJSONObject(mObjA);
-                                Iterator<String> mKeysB = newJson.keys();
+                try {
+                    //JSONObject json = new JSONObject(myResponse);
+                    JSONObject json = new JSONObject(myResponse);
+                    Iterator<String> mKeysA = json.keys();
+                    for (; mKeysA.hasNext(); ) {
+                        String mObjA = mKeysA.next();
+                        JSONObject newJson = json.getJSONObject(mObjA);
+                        Iterator<String> mKeysB = newJson.keys();
 
-                                for (; mKeysB.hasNext(); ) {
-                                    String mObjB = mKeysB.next();
-                                    if (mObjB.equals(mkey.get(mSelec))) {
-                                        String price = newJson.getJSONObject(mObjB).get("price").toString();
-                                        GetDollar.mDollar = Float.parseFloat(price);
-                                        //Basic.msg("--- " + newJson.getJSONObject(mObjB).get("price"));
-                                        mTextView.setText(Basic.setFormatter(price)+" Bs");
-                                    }
-                                }
+                        for (; mKeysB.hasNext(); ) {
+                            String mObjB = mKeysB.next();
+                            if (mObjB.equals(mkey.get(idx))) {
+                                String price = newJson.getJSONObject(mObjB).get("price").toString();
+                                GetDollar.mDollar.set(idx, Float.parseFloat(price));
+                                //Basic.msg("--- " + newJson.getJSONObject(mObjB).get("price"));
+                                //mTextView.setText(Basic.setFormatter(price)+" Bs");
                             }
                         }
-                        catch (JSONException e) {
-                            e.printStackTrace();
-                        }
                     }
-                });
+                    mActivity.runOnUiThread(new Runnable() {
+                        @SuppressLint("SetTextI18n")
+                        @Override
+                        public void run() {
+                            if(idx == (mUrl.size()-1)) {
+                                List<String> mSpinL1 = Arrays.asList("BCV", "Paralelo", "Promedio");
+                                mTextView.setText(Basic.setFormatter(GetDollar.mDollar.get(idx)) + " Bs");
+                                for (int i = 0; i < mSpinL1.size(); i++) {
+                                    String tx = mSpinL1.get(i) + " " + Basic.setFormatter(GetDollar.mDollar.get(idx));
+                                    //mSpinL1.set(i, tx);
+                                }
+                                SelecAdapter adapt1 = new SelecAdapter(mContext, mSpinL1);
+                                mSpinner.setAdapter(adapt1);
+                            }
+                        }
+                    });
+
+                }
+                catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
+
     }
 }
