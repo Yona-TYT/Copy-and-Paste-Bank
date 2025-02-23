@@ -5,7 +5,10 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -15,11 +18,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -40,6 +46,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView mText5;
 
     private TextView mText6; //Test only
+
+    private TextView mText7;
+
+    private Spinner mSpin1;
+    private List<String> mSpinL1 = Arrays.asList("BCV", "Paralelo");
+    private int currSel1 = 0;
+
+    private Switch mSw1;
+    private boolean isConv = false;
 
     public String[] mResList = DataExtracts.mResList;
     public String[] mDebug = DataExtracts.mDebug;
@@ -66,6 +81,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mText4 = findViewById(R.id.text4);
         mText5 = findViewById(R.id.text5);
         mText6 = findViewById(R.id.text6); //Test only
+        mText7 =  findViewById(R.id.dollarView);
+
+        mSpin1 = findViewById(R.id.spin1);
+
+        mSw1 = findViewById(R.id.switch1);
 
         mButt1.setOnClickListener(this);
         mButt2.setOnClickListener(this);
@@ -74,8 +94,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mButt5.setOnClickListener(this);
         mButt6.setOnClickListener(this);
         mButt7.setOnClickListener(this);
+        mSw1.setOnClickListener(this);
 
         new Basic(this);
+
+        mSw1.setChecked(false);
+
+        //Para la lista del selector Tipo Moneda ------------------------------------------------------
+        SelecAdapter adapt1 = new SelecAdapter(this, mSpinL1);
+        mSpin1.setAdapter(adapt1);
+        //mSpin1.setSelection(currSel1); //Set La Moneda como default
+        mSpin1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                currSel1 = i;
+                mSw1.setChecked(false);
+                isConv = false;
+                mText5.setText(formatNumber(mResList[4], false));   //Monto
+
+                GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, i , mText7);
+                try {
+                    GetDollar.urlRun();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -90,6 +138,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
         int itemId = view.getId();
+
+        if (itemId == R.id.switch1) {
+            isConv = !isConv;
+
+            if(GetDollar.getPrice() <= 0){
+                isConv = false;
+                mSw1.setChecked(false);
+                Basic.msg("Error obteniendo precio del DOLAR");
+                return;
+            }
+
+            if(!isConv) {
+                mText5.setText(formatNumber(mResList[4], false));   //Monto
+
+                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
+                clipboard.setPrimaryClip(clipData);
+                Basic.msg("Monto en Bolivares");
+            }
+
+            if(mResList[4].isEmpty()){
+                mSw1.setChecked(false);
+                isConv = false;
+                Basic.msg("El monto esta Vacio!.");
+            }
+            else {
+                if(isConv) {
+                    float value;
+                    try {
+                        value = Basic.notFormatter(mResList[4]);
+                    } catch (ParseException e) {
+                        throw new RuntimeException(e);
+                    }
+                    value *= GetDollar.getPrice();
+                    mText5.setText(Basic.setFormatter(value));   //Monto
+
+                    ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + Basic.setFormatter(value));
+                    clipboard.setPrimaryClip(clipData);
+                    Basic.msg("Monto convertido a: "+ mSpinL1.get(currSel1));
+                }
+            }
+
+        }
+
         //Telefono completo
         if (itemId == R.id.butt2) {
             if(mResList[0].isEmpty()){

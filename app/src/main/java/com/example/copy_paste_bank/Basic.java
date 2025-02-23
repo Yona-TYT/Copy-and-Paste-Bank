@@ -23,10 +23,13 @@ import com.example.copy_paste_bank.R;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 public class Basic {
     private static Context mContex;
@@ -134,7 +137,34 @@ public class Basic {
         return "0.00";
     }
 
+    public static String setFormatter(String value){
+        value = value.replaceAll("([^\\d.,-])","");
+        if (value.isEmpty()){
+            value = "0";
+        }
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.forLanguageTag("ES"));
+        DecimalFormat formatter = (DecimalFormat) nf;
+        formatter.applyPattern("###,##0.00");
+        return formatter.format(Float.parseFloat(value));
+    }
 
+    public static Float notFormatter(String value) throws ParseException {
+        value = value.replaceAll("([^\\d.,-])","");
+        if (value.isEmpty()){
+            value = "0";
+        }
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.forLanguageTag("ES"));
+        DecimalFormat formatter = (DecimalFormat) nf;
+        formatter.applyPattern("###,##0.00");
+        return Objects.requireNonNull(formatter.parse(value)).floatValue();
+    }
+
+    public static String setFormatter(Float value){
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.forLanguageTag("ES"));
+        DecimalFormat formatter = (DecimalFormat) nf;
+        formatter.applyPattern("###,##0.00");
+        return formatter.format(value);
+    }
 
 
     public static Float floatFormat(String value) {

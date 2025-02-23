@@ -9,6 +9,20 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/textV"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/txview_h1"
+        android:layout_marginTop="50dp"
+        android:padding="2dp"
+        android:text="Seleccione Tasa:"
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
         android:id="@+id/textV5"
         android:layout_width="@dimen/button_ws"
         android:layout_height="@dimen/txview_h1"
@@ -66,8 +80,8 @@
 
     <TextView
         android:id="@+id/text6"
-        android:layout_width="279dp"
-        android:layout_height="156dp"
+        android:layout_width="276dp"
+        android:layout_height="52dp"
         android:hint="Test"
         android:padding="2dp"
         android:text=""
@@ -173,15 +187,14 @@
         android:id="@+id/butt1"
         android:layout_width="@dimen/txview_wm"
         android:layout_height="@dimen/button_h1"
-        android:layout_marginTop="84dp"
+        android:layout_marginTop="20dp"
+
         android:padding="2dp"
         android:text="Pegar"
         android:textSize="@dimen/inner_text_1"
 
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spin1"
         tools:ignore="SpUsage" />
 
     <TextView
@@ -289,6 +302,45 @@
         app:layout_constraintStart_toStartOf="@+id/guideline2"
         app:layout_constraintTop_toBottomOf="@+id/butt1"
         tools:ignore="MissingConstraints" />
+
+    <Spinner
+        android:id="@+id/spin1"
+        android:layout_width="@dimen/spinner_w1"
+        android:layout_height="@dimen/spinner_h1"
+        app:layout_constraintEnd_toStartOf="@+id/dollarView"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/textV" />
+
+    <TextView
+        android:id="@+id/dollarView"
+        android:layout_width="@dimen/txview_wm"
+        android:layout_height="@dimen/txview_h2"
+        android:layout_marginTop="68dp"
+        android:layout_marginEnd="36dp"
+        android:padding="6dp"
+        android:text="0"
+        android:textAlignment="center"
+        android:textSize="@dimen/inner_text_2"
+        app:layout_constraintBottom_toTopOf="@+id/switch1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <Switch
+        android:id="@+id/switch1"
+        android:layout_width="105dp"
+        android:layout_height="27dp"
+        android:layout_marginTop="120dp"
+
+        android:text="Convertir"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.546"
+        app:layout_constraintStart_toEndOf="@+id/butt1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.005"
+        tools:ignore="UseSwitchCompatOrMaterialXml" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
