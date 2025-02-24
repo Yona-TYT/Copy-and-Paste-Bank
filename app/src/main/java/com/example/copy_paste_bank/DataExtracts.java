@@ -109,6 +109,7 @@ public class DataExtracts {
         rawTx = getSimple(rawTx);
 
         //Basic.msg(rawTx);
+        mDebug[0] = rawTx;
 
         //text = text.replaceAll("\\*","");
         rawTx = rawTx.replaceAll(":","");
@@ -130,6 +131,7 @@ public class DataExtracts {
             rawTx = rawTx.replaceAll(gr, copyTx);
 
         }
+
         rawTx = rawTx.replaceAll("(\\s+\\n|\\n\\s+)", " ");
         rawTx = rawTx.replaceAll("\\n", " ");
         rawTx = rawTx.replaceAll("(\\.\\s)|(\\s+)", " ");
@@ -271,8 +273,7 @@ public class DataExtracts {
                 break;
             }
         }
-        mDebug[0] = rawTx;
-
+        //mDebug[0] = rawTx;
         //Basic.msg("-> "+text);
         return rawTx;
     }
@@ -343,7 +344,6 @@ public class DataExtracts {
             text = text.replaceAll("\\W", "");
             if(text.isEmpty()){
                 continue;
-
             }
             //Basic.msg("-> "+text);
 
@@ -372,9 +372,7 @@ public class DataExtracts {
             if (text.isEmpty()) {
                 continue;
             }
-
             //Basic.msg("->? "+text);
-
             for (String newTx : mBankList) {
                 String[] strList = newTx.split(";");
                 String pattern = "\\b" + Pattern.quote(text) + "\\b";
@@ -425,15 +423,21 @@ public class DataExtracts {
         rawTx = rawTx.replaceAll("([^0-9,.bs_|])", "");
         rawTx = rawTx.replaceAll("((^|_)[bs](_|$))", "");
 
-        //Basic.msg("-> "+rawTx);
-
-        //mDebug[0] = rawTx;
-
-        for(String newTx : numList){
-            rawTx = rawTx.replace(newTx, "");
+        for (String txTest : rawTx.split("_")){
+            String txCopy = txTest.replaceAll("[_.,a-z]+", "");
+            for(String newTx : numList){
+                //Basic.msg(""+newTx+"-"+txCopy);
+                if(newTx.equals(txCopy)){
+                    rawTx = rawTx.replace(txTest, "");
+                    break;
+                }
+            }
         }
 
         rawTx = rawTx.replaceAll("(_)+", "_");
+
+        //Basic.msg("-> "+rawTx);
+        //mDebug[0] = rawTx;
 
         Pattern patt = Pattern.compile("((^|_)\\d{1,3}([._]\\d{3})*(,\\d+)?(_|$))");
         Matcher matc = patt.matcher(rawTx);
@@ -459,7 +463,6 @@ public class DataExtracts {
             //Basic.msg("-> "+grCopy);
         }
         rawTx = rawTx.replaceAll("bs", "_bs_");
-
         //Basic.msg("-> "+rawTx);
 
         patt = Pattern.compile("(bs_+[0-9]|[0-9]_+bs)");
@@ -472,8 +475,17 @@ public class DataExtracts {
             rawTx = rawTx.replace(gr, grCopy);
         }
 
-        //Basic.msg("-> "+rawTx);
+        patt = Pattern.compile("((\\d+)(\\.)(\\d{1,2})_)");
+        matc = patt.matcher(rawTx);
+        if(matc.find()) {
+            String gr = matc.group(1);
+            //Basic.msg("-> "+gr);
+            assert gr != null;
+            String grCopy = gr.replaceAll("\\.", ",");
+            rawTx = rawTx.replaceFirst(gr, grCopy);
+        }
 
+        //Basic.msg("-> "+rawTx);
         // Procesan con simbolo BS
         patt = Pattern.compile("(bs_[\\d,.]+(\\w|$))");
         matc = patt.matcher(rawTx);
@@ -529,6 +541,31 @@ public class DataExtracts {
                     res = false;
                     break;
                 }
+                Pattern patt = Pattern.compile("(([a-z]{2,})(\\s+)([a-z]{2,}))");
+                Matcher matc = patt.matcher(newTx);
+                while (matc.find()) {
+                    String gr = matc.group(1);
+                    //Basic.msg("-> "+gr);
+                    assert gr != null;
+                    String grCopy = gr.replaceAll("\\s", "_");
+                    newTx = newTx.replaceFirst(gr, grCopy);
+                    matc = patt.matcher(newTx);
+                }
+
+                patt = Pattern.compile("((\\d+)(\\.)(\\d{1,2})$)");
+                matc = patt.matcher(newTx);
+                if(matc.find()) {
+                    String testPhone = newTx.replaceAll("\\D","");
+                    if(testPhone.length() != 11) {
+                        String gr = matc.group(1);
+                        //Basic.msg("-> "+gr);
+                        assert gr != null;
+                        String grCopy = gr.replaceAll("\\.", ",");
+                        newTx = newTx.replaceFirst(gr, grCopy);
+                    }
+                }
+                //---------------------------------------------------------------
+                //Basic.msg("?-> "+newTx);
                 tx += newTx.replaceAll("[\\s-.]+","")+" ";
             }
             if(res){
