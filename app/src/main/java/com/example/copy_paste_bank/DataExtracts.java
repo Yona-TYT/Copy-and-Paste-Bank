@@ -59,24 +59,42 @@ public class DataExtracts {
     public static void startinProcess(String clipText){
         //--------------------------------------
 
+        //Elimina formatos de fechas
+        clipText = clipText.replaceAll("(\\d{2})[\\-/]\\d{2}[\\-/]\\d{2,4}", "");
+
+        //Elimina formatos de hora
+        clipText = clipText.replaceAll("(\\d{1,2})(:)(\\d{1,2})(:)(\\d{1,2})(\\s)(pm|am|a\\.m\\.|p\\.m\\.)", "");
+
+
+        clipText = clipText.replaceAll("\\$", "bs");
+
+
+        //mDebug[0] = clipText;
+
         clipText = processString(clipText);
 
         String mSpl = " ";
         String copyTx = clipText.replaceAll("((_\\|_)+)|(\\|+)", " ");
         String[] txAll = copyTx.split(mSpl);
-        String[] txNum = copyTx.replaceAll("([^0-9\\s])","").split(mSpl);
+        String[] txNum = copyTx.replaceAll("([^0-9\\s.,])","").split(mSpl);
+
+        for (String tx : txNum){
+           // Basic.msg(txNum[8]);
+        }
 
         List<String> txList = new ArrayList<>();
         int idx = validatePhoneNumber(txNum);
         if(idx >(-1)) {
-            txList.add(txNum[idx]);
+            txList.add(txNum[idx].replaceAll("\\D",""));
             txNum[idx] = "";    //Clear the phone number
         }
 
         idx = validateID(txNum);
+        //Basic.msg("-Id>? "+idx);
+
         if(idx >(-1)) {
             String mType = validateType(clipText);
-            txList.add(txNum[idx]);
+            txList.add(txNum[idx].replaceAll("\\D",""));
             mResList[2] = mType.toUpperCase()+txNum[idx].replaceAll("([^0-9])","");
             txNum[idx] = "";    //Clear the cedula number
         }
@@ -89,7 +107,7 @@ public class DataExtracts {
             mResList[3] = (String)namRes[1];
             mResList[5] = (String)namRes[2];
 
-            txList.add(txNum[idx]);
+            txList.add(txNum[idx].replaceAll("\\D",""));
             txNum[idx] = "";    //Clear the bank number
         }
         else {
@@ -109,7 +127,6 @@ public class DataExtracts {
         rawTx = getSimple(rawTx);
 
         //Basic.msg(rawTx);
-        mDebug[0] = rawTx;
 
         //text = text.replaceAll("\\*","");
         rawTx = rawTx.replaceAll(":","");
@@ -207,23 +224,16 @@ public class DataExtracts {
         }
         //--------------------------------------------------------------------------------
 
-        patt = Pattern.compile("([a-z]{2,})(\\s)([a-z]{2,})");
-        m = patt.matcher(rawTx);
-        while (m.find()) {
-            String gr = m.group(1)+"_"+m.group(3);
-            rawTx = rawTx.replaceFirst("([a-z]{2,})(\\s)([a-z]{2,})", gr);
-            m = patt.matcher(rawTx);
-        }
         //mDebug[0] = rawTx;
 
         //Espacio entre numeros de telefono -----------------------------
-        patt = Pattern.compile("((^|[\\s_])([0-9]{4})(\\s)([0-9\\s]{7,9}([\\s_]|$)))");
+        patt = Pattern.compile("((^|[\\s_])(\\d{4})([\\s\\-])([\\d\\s]{7,9}([\\s_]|$)))");
         m = patt.matcher(rawTx);
         if (m.find()) {
             String gr = m.group(1);
             assert gr != null;
             //Basic.msg("-> "+gr);
-            String grCopy = gr.replaceAll("[\\s_]+", "");
+            String grCopy = gr.replaceAll("[\\s_\\-]+", "");
             for (String newTx : mAreaList) {
                 //Basic.msg("-> "+grCopy);
                 if (grCopy.startsWith(newTx) && grCopy.length()==11) {
@@ -234,6 +244,17 @@ public class DataExtracts {
             }
         }
         //----------------------------------------------------------------
+
+        patt = Pattern.compile("((\\w{2,})(-+)(\\w{2,}))");
+        m = patt.matcher(rawTx);
+        while (m.find()) {
+            String gr = m.group(1);
+            //Basic.msg("??-> "+gr);
+            assert gr != null;
+            String grCopy = gr.replaceAll("-", "_");
+            rawTx = rawTx.replaceFirst(gr, grCopy);
+            m = patt.matcher(rawTx);
+        }
 
         //Espacio entre montos ---------------------------------------
         patt = Pattern.compile("((^|[\\sa-z_])(\\d{1,3}(\\s\\d{3}){1,3})([\\s_.,]|$))");
@@ -282,6 +303,8 @@ public class DataExtracts {
         for (int i = 0; i< list.length ; i++){
             String text = list[i];
             text = text.replaceAll("(^0{2,})", "0");
+            text = text.replaceAll("\\D", "");
+
             //Basic.msg("-> "+text);
             if(ValidCodeArea(text)){
                 return i;
@@ -309,8 +332,10 @@ public class DataExtracts {
     private static int validateID(String[] list) {
         for (int i = 0; i< list.length ; i++){
             String text = list[i];
-            //Basic.msg("-> "+text);
-            text = text.replaceAll("\\W", "");
+            text = text.replaceAll("([.,]\\d{1,2}$)", "");
+            text = text.replaceAll("\\D", "");
+            //Basic.msg("id>"+text);
+
             if(text.length() > 5 && text.length() < 10){
                 return i;
             }
@@ -341,12 +366,11 @@ public class DataExtracts {
         for (int i = 0; i< list.length ; i++){
             String text = list[i];
 
-            text = text.replaceAll("\\W", "");
+            text = text.replaceAll("\\D", "");
             if(text.isEmpty()){
                 continue;
             }
             //Basic.msg("-> "+text);
-
             if(text.length() == 4 && text.startsWith("01")){
                 for(String mCode : mBankList){
                     String code = mCode.split(";")[0];
@@ -413,31 +437,31 @@ public class DataExtracts {
 
     private static String validateMonto(List<String> numList, String rawTx) {
 
-        String[] mony = {"monto_bs","bs","bs.","bolos","bsf","bolivares","monto", "dolar", "verdes", "dolares", "$"};
+        String[] mony = {"monto_(bs.)","monto_bs","bs","bs.","bolos","bsf","bolivares","monto", "dolar", "verdes", "dolares"};
 
         rawTx = rawTx.replaceAll("([\\n\\s])", "_");
+        //mDebug[0] = rawTx;
+
         for(String newTx:mony){
-            rawTx = rawTx.replaceAll(newTx, "_bs_");
+            rawTx = rawTx.replaceAll("[^a-z]"+newTx+"[^a-z]", "_bs_");
         }
 
         rawTx = rawTx.replaceAll("([^0-9,.bs_|])", "");
         rawTx = rawTx.replaceAll("((^|_)[bs](_|$))", "");
 
         for (String txTest : rawTx.split("_")){
-            String txCopy = txTest.replaceAll("[_.,a-z]+", "");
+            String txCopy = txTest.replaceAll("\\D", "");
             for(String newTx : numList){
-                //Basic.msg(""+newTx+"-"+txCopy);
+                //Basic.msg("newTx-"+txCopy);
                 if(newTx.equals(txCopy)){
                     rawTx = rawTx.replace(txTest, "");
                     break;
                 }
             }
         }
-
         rawTx = rawTx.replaceAll("(_)+", "_");
 
         //Basic.msg("-> "+rawTx);
-        //mDebug[0] = rawTx;
 
         Pattern patt = Pattern.compile("((^|_)\\d{1,3}([._]\\d{3})*(,\\d+)?(_|$))");
         Matcher matc = patt.matcher(rawTx);
@@ -575,6 +599,4 @@ public class DataExtracts {
         }
         return rawTx;
     }
-
-
 }

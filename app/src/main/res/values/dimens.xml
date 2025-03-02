@@ -18,7 +18,7 @@
     <dimen name="txview_pad2">10dp</dimen>
     <dimen name="button_w1">310dp</dimen>
     <dimen name="button_wm">310dp</dimen>
-    <dimen name="button_ws">100dp</dimen>
+    <dimen name="button_ws">110dp</dimen>
     <dimen name="button_wss">50dp</dimen>
     <dimen name="button_h1">38dp</dimen>
     <dimen name="spinner_w1">150dp</dimen>

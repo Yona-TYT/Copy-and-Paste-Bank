@@ -16,8 +16,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+
+        // e.g this is how you would add jitpack
+        maven { url "https://jitpack.io" }
+        // Add any repositories you would be adding to all projects here
     }
 }
+
 
 rootProject.name = "Copy and Paste Bank"
 include ':app'

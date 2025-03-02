@@ -102,4 +102,10 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:4.9.0'
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
     implementation 'com.squareup.okhttp3:okhttp-urlconnection:4.4.1'
+
+    // Text features
+    implementation 'com.google.mlkit:text-recognition:16.0.1'
+    
+    // https://mvnrepository.com/artifact/com.google.android.gms/play-services-mlkit-text-recognition-common
+    implementation 'com.google.android.gms:play-services-mlkit-text-recognition-common:19.1.0'
 }

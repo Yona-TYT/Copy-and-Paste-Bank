@@ -21,7 +21,6 @@ import java.util.List;
 public class SelecAdapter extends BaseAdapter {
     //Test------------------------------------------------------------
     private Context mContex;
-
     private List<String> textList = new ArrayList<>();
 
     private ArrayList<Integer> newList = new ArrayList<>();    // Values to be displayed
@@ -62,6 +61,7 @@ public class SelecAdapter extends BaseAdapter {
         text.setTextColor(ContextCompat.getColor(text.getContext(), R.color.text_color1));
         text.setBackgroundColor(ContextCompat.getColor(text.getContext(), R.color.text_background2));
         text.setPadding(10,5,10,5);
+        text.setTag(pos);
         layout.addView(text);
 
         //-----------------------------------------------------------------------

@@ -29,10 +29,13 @@ public class GetDollar {
     private static TextView mTextView;
 
     public static List<Float> mDollar = Arrays.asList((float)0, (float)0, (float)0);
+    public static List<String> mDate = Arrays.asList("", "", "");
+
 
 
     static List<String> mUrl = Arrays.asList("https://pydolarve.org/api/v1/dollar?page=bcv", "https://pydolarve.org/api/v1/dollar?page=enparalelovzla", "https://pydolarve.org/api/v1/dollar?page=criptodolar");
     static List<String> mkey = Arrays.asList("usd", "enparalelovzla", "promedio");
+
 
     public GetDollar(Context mContext, FragmentActivity mActivity, Spinner mSpinner, TextView mTextView) {
         this.mContext = mContext;
@@ -69,18 +72,23 @@ public class GetDollar {
     public static void setRequest(Request request, int idx){
 
         OkHttpClient client = new OkHttpClient();
-
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
+                mActivity.runOnUiThread(new Runnable() {
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void run() {
+                        if(idx == (mUrl.size()-1)) {
+                            Basic.msg("Error de CONEXION!");
+                        }
+                    }
+                });
                 call.cancel();
             }
-
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-
                 final String myResponse = response.body().string();
-
                 try {
                     //JSONObject json = new JSONObject(myResponse);
                     JSONObject json = new JSONObject(myResponse);
@@ -95,6 +103,8 @@ public class GetDollar {
                             if (mObjB.equals(mkey.get(idx))) {
                                 String price = newJson.getJSONObject(mObjB).get("price").toString();
                                 GetDollar.mDollar.set(idx, Float.parseFloat(price));
+
+                                GetDollar.mDate.set(idx,  newJson.getJSONObject(mObjB).get("last_update").toString());
                                 //Basic.msg("--- " + newJson.getJSONObject(mObjB).get("price"));
                                 //mTextView.setText(Basic.setFormatter(price)+" Bs");
                             }
@@ -105,24 +115,22 @@ public class GetDollar {
                         @Override
                         public void run() {
                             if(idx == (mUrl.size()-1)) {
-                                List<String> mSpinL1 = Arrays.asList("BCV", "Paralelo", "Promedio");
                                 mTextView.setText(Basic.setFormatter(GetDollar.mDollar.get(idx)) + " Bs");
-                                for (int i = 0; i < mSpinL1.size(); i++) {
-                                    String tx = mSpinL1.get(i) + " " + Basic.setFormatter(GetDollar.mDollar.get(idx));
-                                    //mSpinL1.set(i, tx);
-                                }
-                                SelecAdapter adapt1 = new SelecAdapter(mContext, mSpinL1);
-                                mSpinner.setAdapter(adapt1);
                             }
+                            List<String> mSpinL1 = Arrays.asList("BCV", "Paralelo", "Promedio");
+                            for (int i = 0; i < mSpinL1.size(); i++) {
+                                String tx = mSpinL1.get(i) + " " + Basic.setFormatter(GetDollar.mDollar.get(i))+" Bs";
+                                mSpinL1.set(i, tx);
+                            }
+                            SelecAdapter adapt1 = new SelecAdapter(mContext, mSpinL1);
+                            mSpinner.setAdapter(adapt1);
                         }
                     });
-
                 }
                 catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
         });
-
     }
 }
