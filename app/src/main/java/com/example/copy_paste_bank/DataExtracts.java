@@ -135,7 +135,7 @@ public class DataExtracts {
         rawTx = rawTx.replaceAll("í","i");
 
         rawTx = rawTx.replaceAll("(\\+580)|(\\+58\\s)|(\\+58)", "0");
-        rawTx = rawTx.replaceAll("(\\+580)|(\\+58\\s)|(\\+58)", "0");
+        //rawTx = rawTx.replaceAll("(\\+580)|(\\+58\\s)|(\\+58)", "0");
 
         Pattern patt = Pattern.compile("(\\n)");
         Matcher m = patt.matcher(rawTx);
@@ -315,12 +315,22 @@ public class DataExtracts {
 
     private static boolean ValidCodeArea(String value){
         for (String text : mAreaList){
-            //Basic.msg("-> "+value);
+            //Basic.msg("-> "+text.substring(1));
             if(value.startsWith(text)) {
                 //Basic.msg("-> "+text);
                 String tlf = value.replaceFirst(text, "");
                 if(tlf.length() == 7) {
                     mResList[0] = value;
+                    mResList[1] = tlf;
+                    return true;
+                }
+            }
+            String copyText = "58"+text.substring(1);
+            if(value.startsWith(copyText)) {
+                //Basic.msg("-> "+text);
+                String tlf = value.replaceFirst(copyText, "");
+                if(tlf.length() == 7) {
+                    mResList[0] = text+tlf;
                     mResList[1] = tlf;
                     return true;
                 }
