@@ -14,7 +14,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -88,11 +91,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView mText2;
     private TextView mText3;
     private TextView mText4;
-    private TextView mText5;
+    private CurrencyEditText mInput1;
 
-    private TextView mText6; //Test only
+    private TextView mText5; //Test only
 
-    private TextView mText7;
+    private TextView mText6;
 
     private Spinner mSpin1;
     private List<String> mSpinL1 = Arrays.asList("BCV", "Paralelo", "Promedio");
@@ -103,8 +106,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public String[] mResList = DataExtracts.mResList;
     public String[] mDebug = DataExtracts.mDebug;
-
-    private Bitmap bitmap;
+    private String mConver = "";
 
     private ActivityResultLauncher<Uri> takePictureLauncher;
     private ActivityResultLauncher<String> selectPictureLauncher;
@@ -143,9 +145,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mText2 = findViewById(R.id.text2);
         mText3 = findViewById(R.id.text3);
         mText4 = findViewById(R.id.text4);
-        mText5 = findViewById(R.id.text5);
-        mText6 = findViewById(R.id.text6); //Test only
-        mText7 =  findViewById(R.id.dollarView);
+        mText5 = findViewById(R.id.text6); //Test only
+        mText6 =  findViewById(R.id.dollarView);
+
+        mInput1 = findViewById(R.id.input1);
 
         mSpin1 = findViewById(R.id.spin1);
 
@@ -163,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBtnImg1.setOnClickListener(this);
         mBtnImg1.setOnLongClickListener(this);
 
-
+        mInput1.setOnClickListener(this);
         mSw1.setOnClickListener(this);
 
         new Basic(this);
@@ -171,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mSw1.setChecked(false);
 
-        GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mText7);
+        GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mText6);
         try {
             GetDollar.urlRun();
         } catch (IOException e) {
@@ -191,8 +194,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 currSel1 = i;
                 mSw1.setChecked(false);
                 isConv = false;
-                mText5.setText(formatNumber(mResList[4], false));   //Monto
-                mText7.setText(Basic.setFormatter(GetDollar.mDollar.get(i))+" Bs");
+                mInput1.setText(formatNumber(mResList[4], false));   //Monto
+                mText6.setText(Basic.setFormatter(GetDollar.mDollar.get(i).toString())+" Bs");
 
                 View spinnerSel = mSpin1.getSelectedView();
                 if(spinnerSel != null) {
@@ -204,6 +207,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
 
+            }
+        });
+
+        mInput1.setOnTouchListener(new View.OnTouchListener() {
+            @SuppressLint("ClickableViewAccessibility")
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if(isConv) {
+                    isConv = false;
+                    mSw1.setChecked(false);
+                }
+                return false;
             }
         });
 
@@ -273,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                mText6.setText(e.getMessage());
+                mText5.setText(e.getMessage());
             }
         });
     }
@@ -305,6 +320,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int itemId = view.getId();
         ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
+        DataExtracts.mResList[4] = getInputValue();
+
+        if (itemId == R.id.input1) {
+            if(isConv) {
+                isConv = false;
+                mSw1.setChecked(false);
+            }
+        }
+
         if (itemId == R.id.buttimag1) {
             if(!mPermiss) {
                 mPermiss = checkStoragePermissions();
@@ -323,7 +347,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (itemId == R.id.switch1) {
             isConv = !isConv;
-
             if(GetDollar.getPrice(currSel1) <= 0){
                 isConv = false;
                 mSw1.setChecked(false);
@@ -331,19 +354,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             }
             if(!isConv) {
-                mText5.setText(formatNumber(mResList[4], false));   //Monto
+                mInput1.setText(formatNumber(mResList[4], false));   //Monto
 
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
                 clipboard.setPrimaryClip(clipData);
                 Basic.msg("Monto en Bolivares");
             }
-            if(mResList[4].isEmpty()){
-                mSw1.setChecked(false);
-                isConv = false;
-                Basic.msg("El monto esta Vacio!.");
-            }
             else {
-                if(isConv) {
+
+                mInput1.clearFocus();
+
+                if(mResList[4].isEmpty()){
+                    mSw1.setChecked(false);
+                    isConv = false;
+                    Basic.msg("El monto esta Vacio!.");
+                }
+                else {
                     float value;
                     try {
                         value = Basic.notFormatter(mResList[4]);
@@ -351,9 +377,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         throw new RuntimeException(e);
                     }
                     value *= GetDollar.getPrice(currSel1);
-                    mText5.setText(Basic.setFormatter(value));   //Monto
+                    mConver = Basic.setFormatter(Float.toString(value));
+                    mInput1.setText(mConver);   //Monto
 
-                    ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + Basic.setFormatter(value));
+                    ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mConver);
                     clipboard.setPrimaryClip(clipData);
                     Basic.msg("Monto convertido a: "+ mSpinL1.get(currSel1));
                 }
@@ -362,7 +389,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Boton que recarga el precio dolar
         if (itemId == R.id.buttRe) {
-            GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mText7);
+            GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mText6);
             try {
                 GetDollar.urlRun();
             } catch (IOException e) {
@@ -424,7 +451,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Basic.msg("Este Campo esta VACIO!:");
             }
             else {
-                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[4]);
+                ClipData clipData = ClipData.newPlainText("Clip Data", (isConv? mConver : mResList[4]));
                 clipboard.setPrimaryClip(clipData);
                 Basic.msg("Monto Copiado al portapapeles.");
             }
@@ -432,11 +459,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Todos los datos
         if (itemId == R.id.butt7) {
-            if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && mResList[4].isEmpty()){
+            if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && (isConv? mConver : mResList[4]).isEmpty()){
                 Basic.msg("Los campos estan VACIOS!:");
             }
             else {
-                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
+                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + (isConv? mConver : mResList[4]));
                 clipboard.setPrimaryClip(clipData);
                 Basic.msg("Los datos se han copiado al portapapeles.");
             }
@@ -444,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Debug
         if (itemId == R.id.butt8) {
-            ClipData clipData = ClipData.newPlainText("Clip Data", mText6.getText());
+            ClipData clipData = ClipData.newPlainText("Clip Data", mText5.getText());
             clipboard.setPrimaryClip(clipData);
             Basic.msg("Debug Copiado al portapapeles.");
         }
@@ -479,8 +506,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mText2.setText("");     // Telf
         mText3.setText("");     // Cedula
         mText4.setText("");     // Codig Banco
-        mText5.setText("");     // Monto
-        mText6.setText("");
+        mInput1.setText("");     // Monto
+        mText5.setText("");
         //--------------------------------------
 
         DataExtracts.startinProcess(text);
@@ -489,8 +516,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mText2.setText(mResList[1]);                           // Telf
         mText3.setText(formatNumber(mResList[2], true));    // Cedula
         mText4.setText(mResList[3]+" "+mResList[5]);           // Codig Banco
-        mText5.setText(formatNumber(mResList[4], false));   //Monto
-        mText6.setText(mDebug[0]);
+        mInput1.setText(formatNumber(mResList[4], false));   //Monto
+        mText5.setText(mDebug[0]);
         if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && mResList[4].isEmpty()){
             Basic.msg("No se encontraron DATOS!");
         }
@@ -640,6 +667,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } else {
                 Basic.msg("Permisos de Camara Denegados");
             }
+        }
+    }
+
+    private String getInputValue(){
+        if(isConv){
+            return mResList[4];
+        }
+        else {
+            return Basic.setFormatter(Double.toString(mInput1.getNumericValue()));
         }
     }
 }

@@ -115,11 +115,11 @@ public class GetDollar {
                         @Override
                         public void run() {
                             if(idx == (mUrl.size()-1)) {
-                                mTextView.setText(Basic.setFormatter(GetDollar.mDollar.get(idx)) + " Bs");
+                                mTextView.setText(Basic.setFormatter(GetDollar.mDollar.get(idx).toString()) + " Bs");
                             }
                             List<String> mSpinL1 = Arrays.asList("BCV", "Paralelo", "Promedio");
                             for (int i = 0; i < mSpinL1.size(); i++) {
-                                String tx = mSpinL1.get(i) + " " + Basic.setFormatter(GetDollar.mDollar.get(i))+" Bs";
+                                String tx = mSpinL1.get(i) + " " + Basic.setFormatter(GetDollar.mDollar.get(i).toString())+" Bs";
                                 mSpinL1.set(i, tx);
                             }
                             SelecAdapter adapt1 = new SelecAdapter(mContext, mSpinL1);

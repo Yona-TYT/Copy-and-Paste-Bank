@@ -146,23 +146,27 @@
 
         android:textSize="@dimen/inner_text_1"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintHorizontal_bias="0.448"
-        app:layout_constraintStart_toEndOf="@+id/text5"
+        app:layout_constraintStart_toEndOf="@+id/input1"
         app:layout_constraintTop_toBottomOf="@+id/textV5" />
 
-    <TextView
-        android:id="@+id/text5"
+    <com.example.copy_paste_bank.CurrencyEditText
+        android:id="@+id/input1"
         android:layout_width="@dimen/txview_wm2"
-        android:layout_height="@dimen/txview_h2"
-        android:hint="0.000,00"
-        android:textColorHint="@color/text_hint"
+        android:layout_height="@dimen/input_h1"
         android:padding="2dp"
-        android:text=""
-        android:textSize="@dimen/txview_h1"
+        android:ems="10"
+        android:focusable="true"
+        android:hint="Monto en Bs"
+        android:imeOptions="actionDone"
+        android:maxLength="20"
+        android:textSize="@dimen/inner_text_2"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/textV5" />
+        app:layout_constraintTop_toBottomOf="@+id/textV5"
+        app:localeTag="ES"
+        app:maxNumberOfDecimalDigits="2"
+        tools:ignore="MissingConstraints" />
 
     <Button
         android:id="@+id/butt5"
@@ -299,10 +303,11 @@
         android:id="@+id/butt7"
         android:layout_width="@dimen/button_ws"
         android:layout_height="@dimen/button_h1"
-        android:layout_marginTop="20dp"
 
         android:layout_marginEnd="148dp"
 
+        android:layout_marginBottom="124dp"
+        android:focusableInTouchMode="false"
         android:padding="2dp"
         android:text="Copiar Todo"
         android:textSize="@dimen/inner_text_1"
@@ -310,8 +315,7 @@
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/text5"
-        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintTop_toBottomOf="@+id/input1"
         tools:ignore="SpUsage" />
 
     <Button
@@ -330,7 +334,6 @@
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.441"
         app:layout_constraintStart_toEndOf="@+id/text5"
-        app:layout_constraintTop_toBottomOf="@+id/text5"
         app:layout_constraintVertical_bias="0.0"
         tools:ignore="SpUsage" />
 
@@ -387,6 +390,7 @@
         android:layout_width="@dimen/button_ws"
         android:layout_height="@dimen/txview_h2"
 
+        android:focusableInTouchMode="false"
         android:text="Convertir"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
