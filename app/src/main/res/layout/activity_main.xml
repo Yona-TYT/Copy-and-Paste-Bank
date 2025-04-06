@@ -333,7 +333,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.441"
-        app:layout_constraintStart_toEndOf="@+id/text5"
+        app:layout_constraintStart_toEndOf="@+id/input1"
         app:layout_constraintVertical_bias="0.0"
         tools:ignore="SpUsage" />
 

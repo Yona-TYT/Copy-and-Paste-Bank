@@ -2,38 +2,27 @@ package com.example.copy_paste_bank;
 
 import static android.widget.GridLayout.spec;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
-
-import com.example.copy_paste_bank.R;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HexFormat;
-import java.util.IllformedLocaleException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-
-
 
 public class Basic {
     private static Context mContex;
@@ -325,30 +314,11 @@ public class Basic {
         return bit;
     }
 
-
     public static String parseMoneyValue(String value, String groupingSeparator, String currencySymbol) {
         return value.replace(groupingSeparator, "").replace(currencySymbol, "");
     }
 
-    public static Number parseMoneyValueWithLocale(Locale locale, String value, String groupingSeparator, String currencySymbol) {
-        String valueWithoutSeparator = parseMoneyValue(value, groupingSeparator, currencySymbol);
-        try {
-            return NumberFormat.getInstance(locale).parse(valueWithoutSeparator);
-        } catch (ParseException exception) {
-            return 0;
-        }
-    }
-
-    public static Locale getLocaleFromTag(String localeTag) {
-        try {
-            return new Locale.Builder().setLanguageTag(localeTag).build();
-        } catch (IllformedLocaleException e) {
-            return Locale.getDefault();
-        }
-    }
-
     public static boolean isLollipopAndAbove() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+        return true;
     }
-
 }

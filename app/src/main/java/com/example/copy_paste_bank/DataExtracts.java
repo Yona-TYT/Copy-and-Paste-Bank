@@ -61,9 +61,8 @@ public class DataExtracts {
 
         //Elimina formatos de fechas
         clipText = clipText.replaceAll("(\\d{2})[\\-/]\\d{2}[\\-/]\\d{2,4}", "");
-
-        //Elimina formatos de hora
-        clipText = clipText.replaceAll("(\\d{1,2})(:)(\\d{1,2})(:)(\\d{1,2})(\\s)(pm|am|a\\.m\\.|p\\.m\\.)", "");
+        clipText = clipText.replaceAll("(\\d{1,2})(:)(\\d{1,2})(:)(\\d{1,2})(pm|am|p\\.m\\.|a\\.m\\.|p\\.\\sm\\.)", "");
+        clipText = clipText.replaceAll("(\\d{1,2})(:)(\\d{1,2})(\\s)(pm|am|p\\.m\\.|a\\.m\\.|p\\.\\sm\\.)", "");
 
 
         clipText = clipText.replaceAll("\\$", "bs");
@@ -406,6 +405,7 @@ public class DataExtracts {
             if (text.isEmpty()) {
                 continue;
             }
+            text = text.replaceAll("(^_)|(_$)","");
             //Basic.msg("->? "+text);
             for (String newTx : mBankList) {
                 String[] strList = newTx.split(";");

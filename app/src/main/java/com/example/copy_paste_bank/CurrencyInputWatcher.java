@@ -1,5 +1,6 @@
 package com.example.copy_paste_bank;
 
+import android.annotation.SuppressLint;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
@@ -60,6 +61,7 @@ public class CurrencyInputWatcher implements TextWatcher {
 
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void afterTextChanged(Editable s) {
 
