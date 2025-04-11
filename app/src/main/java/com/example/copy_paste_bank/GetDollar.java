@@ -28,13 +28,13 @@ public class GetDollar {
     private static Spinner mSpinner;
     private static TextView mTextView;
 
-    public static List<Float> mDollar = Arrays.asList((float)0, (float)0, (float)0);
-    public static List<String> mDate = Arrays.asList("", "", "");
+    public static List<Float> mDollar = Arrays.asList((float)0, (float)0, (float)0, (float)0);
+    public static List<String> mDate = Arrays.asList("", "", "", "");
 
 
 
-    static List<String> mUrl = Arrays.asList("https://pydolarve.org/api/v1/dollar?page=bcv", "https://pydolarve.org/api/v1/dollar?page=enparalelovzla", "https://pydolarve.org/api/v1/dollar?page=criptodolar");
-    static List<String> mkey = Arrays.asList("usd", "enparalelovzla", "promedio");
+    static List<String> mUrl = Arrays.asList("https://pydolarve.org/api/v1/dollar?page=bcv", "https://pydolarve.org/api/v1/dollar?page=criptodolar", "https://pydolarve.org/api/v1/dollar?page=enparalelovzla", "");
+    static List<String> mkey = Arrays.asList("usd", "promedio", "enparalelovzla", "");
 
 
     public GetDollar(Context mContext, FragmentActivity mActivity, Spinner mSpinner, TextView mTextView) {
@@ -67,6 +67,15 @@ public class GetDollar {
                 .url(mUrl.get(idx))
                 .build();
         setRequest( request, idx);
+
+        /* Este valor es local
+        idx = 3;
+        request = new Request.Builder()
+                .url(mUrl.get(idx))
+                .build();
+        setRequest( request, idx);
+
+         */
     }
 
     public static void setRequest(Request request, int idx){
@@ -117,9 +126,9 @@ public class GetDollar {
                             if(idx == (mUrl.size()-1)) {
                                 mTextView.setText(Basic.setFormatter(GetDollar.mDollar.get(idx).toString()) + " Bs");
                             }
-                            List<String> mSpinL1 = Arrays.asList("BCV", "Paralelo", "Promedio");
+                            List<String> mSpinL1 = Arrays.asList("BCV", "Promedio", "Paralelo", "Valor Perzonalizado");
                             for (int i = 0; i < mSpinL1.size(); i++) {
-                                String tx = mSpinL1.get(i) + " " + Basic.setFormatter(GetDollar.mDollar.get(i).toString())+" Bs";
+                                String tx = mSpinL1.get(i) + (i == mSpinL1.size()-1 ? "" : " "+Basic.setFormatter(GetDollar.mDollar.get(i).toString())+" Bs");
                                 mSpinL1.set(i, tx);
                             }
                             SelecAdapter adapt1 = new SelecAdapter(mContext, mSpinL1);

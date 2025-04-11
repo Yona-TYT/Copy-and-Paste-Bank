@@ -65,15 +65,12 @@ import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
-
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener{
 
     private static final int STORAGE_PERMISSION_CODE = 23;
     private static final int CAMERA_PERMISSION_CODE = 100;
     private boolean mPermiss = false;
     private boolean mCamPermiss = false;
-
-    private Uri currUri = null;
 
     private Button mButt1;
     private Button mButt2;
@@ -91,14 +88,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView mText2;
     private TextView mText3;
     private TextView mText4;
-    private CurrencyEditText mInput1;
-
     private TextView mText5; //Test only
 
-    private TextView mText6;
+    private TextView mDollView;
+
+    private CurrencyEditText mInput1;
+    private CurrencyEditText mInput2;
 
     private Spinner mSpin1;
-    private List<String> mSpinL1 = Arrays.asList("BCV", "Paralelo", "Promedio");
+    private List<String> mSpinL1 = Arrays.asList("BCV", "Promedio", "Paralelo", "Valor Perzonalizado");
     private int currSel1 = 0;
 
     private Switch mSw1;
@@ -115,9 +113,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ActivityMainBinding binding;
 
-    private boolean isTouch = true;
-
-
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,7 +126,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Initialize ML Kit Text Recognizer
         recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
-
 
         mButt1 = findViewById(R.id.butt1);
         mButt2 = findViewById(R.id.butt2);
@@ -148,10 +142,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mText2 = findViewById(R.id.text2);
         mText3 = findViewById(R.id.text3);
         mText4 = findViewById(R.id.text4);
-        mText5 = findViewById(R.id.text6); //Test only
-        mText6 =  findViewById(R.id.dollarView);
+        mText5 = findViewById(R.id.text6);//Test only
 
+        mDollView =  findViewById(R.id.dollarView);
         mInput1 = findViewById(R.id.input1);
+        mInput2 = findViewById(R.id.input2);
 
         mSpin1 = findViewById(R.id.spin1);
 
@@ -169,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBtnImg1.setOnClickListener(this);
         mBtnImg1.setOnLongClickListener(this);
 
-        mInput1.setOnClickListener(this);
+        mInput2.setOnClickListener(this);
         mSw1.setOnClickListener(this);
 
         new Basic(this);
@@ -177,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mSw1.setChecked(false);
 
-        GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mText6);
+        GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mInput1);
         try {
             GetDollar.urlRun();
         } catch (IOException e) {
@@ -194,11 +189,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @SuppressLint("SetTextI18n")
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if(i == GetDollar.mDollar.size()-1){
+                    GetDollar.mDollar.set(i, GetDollar.mDollar.get(currSel1));
+                    mInput1.setText(Basic.setFormatter(GetDollar.mDollar.get(i).toString()));
+
+                    mInput1.setVisibility(View.VISIBLE);
+                    mDollView.setVisibility(View.INVISIBLE);
+
+                }
+                else {
+                    mDollView.setText(Basic.setFormatter(GetDollar.mDollar.get(i).toString())+" Bs");
+
+                    mInput1.setVisibility(View.INVISIBLE);
+                    mDollView.setVisibility(View.VISIBLE);
+                }
                 currSel1 = i;
                 mSw1.setChecked(false);
                 isConv = false;
-                mInput1.setText(formatNumber(mResList[4], false));   //Monto
-                mText6.setText(Basic.setFormatter(GetDollar.mDollar.get(i).toString())+" Bs");
+                mInput2.setText(formatNumber(mResList[4], false));   //Monto
 
                 View spinnerSel = mSpin1.getSelectedView();
                 if(spinnerSel != null) {
@@ -213,7 +221,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        mInput1.setOnTouchListener(new View.OnTouchListener() {
+        mInput1.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                GetDollar.mDollar.set(GetDollar.mDollar.size()-1, (float)mInput1.getNumericValue());
+            }
+        });
+
+        mInput2.setOnTouchListener(new View.OnTouchListener() {
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -224,9 +249,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return false;
             }
         });
-
-        //mInput1.onSelectionChanged();
-
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -328,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         DataExtracts.mResList[4] = getInputValue();
 
-        if (itemId == R.id.input1) {
+        if (itemId == R.id.input2) {
             if(isConv) {
                 isConv = false;
                 mSw1.setChecked(false);
@@ -360,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             }
             if(!isConv) {
-                mInput1.setText(formatNumber(mResList[4], false));   //Monto
+                mInput2.setText(formatNumber(mResList[4], false));   //Monto
 
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
                 clipboard.setPrimaryClip(clipData);
@@ -368,7 +390,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             else {
 
-                mInput1.clearFocus();
+                mInput2.clearFocus();
 
                 if(mResList[4].isEmpty()){
                     mSw1.setChecked(false);
@@ -384,7 +406,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     value *= GetDollar.getPrice(currSel1);
                     mConver = Basic.setFormatter(Float.toString(value));
-                    mInput1.setText(mConver);   //Monto
+                    mInput2.setText(mConver);   //Monto
 
                     ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mConver);
                     clipboard.setPrimaryClip(clipData);
@@ -395,7 +417,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Boton que recarga el precio dolar
         if (itemId == R.id.buttRe) {
-            GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mText6);
+            GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mDollView);
             try {
                 GetDollar.urlRun();
             } catch (IOException e) {
@@ -512,7 +534,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mText2.setText("");     // Telf
         mText3.setText("");     // Cedula
         mText4.setText("");     // Codig Banco
-        mInput1.setText("");     // Monto
+        mInput2.setText("");     // Monto
         mText5.setText("");
         //--------------------------------------
 
@@ -522,7 +544,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mText2.setText(mResList[1]);                           // Telf
         mText3.setText(formatNumber(mResList[2], true));    // Cedula
         mText4.setText(mResList[3]+" "+mResList[5]);           // Codig Banco
-        mInput1.setText(formatNumber(mResList[4], false));   //Monto
+        mInput2.setText(formatNumber(mResList[4], false));   //Monto
         mText5.setText(mDebug[0]);
         if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && mResList[4].isEmpty()){
             Basic.msg("No se encontraron DATOS!");
@@ -681,7 +703,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return mResList[4];
         }
         else {
-            return Basic.setFormatter(Double.toString(mInput1.getNumericValue()));
+            return Basic.setFormatter(Double.toString(mInput2.getNumericValue()));
         }
     }
 }
