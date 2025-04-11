@@ -13,7 +13,7 @@ public class DataExtracts {
     private static final List<String> mTypeList = Arrays.asList("v","j","g","p","e","r","c" );
     private static final List<String> mAreaList = Arrays.asList("0426", "0416", "0414", "0412", "0424");
     private static final List<String> mBankList = Arrays.asList(
-            "0102;BDV DE_VENEZUELA;VNZ VENEZUELA;Venezuela",
+            "0102;BDV DE_VENEZUELA;VNZ VNZL VENEZUELA;Venezuela",
             "0156;100%;100%_BANCO;100%Banco",
             "0172;BANCAMIGA;|;Bancamiga",
             "0114;BANCARIBE;|;Bancaribe",
@@ -60,9 +60,13 @@ public class DataExtracts {
         //--------------------------------------
 
         //Elimina formatos de fechas
-        clipText = clipText.replaceAll("(\\d{2})[\\-/]\\d{2}[\\-/]\\d{2,4}", "");
+        clipText = clipText.replaceAll("(\\d{2})[\\-/:]\\d{2}[\\-/:]\\d{2,4}", "");
         clipText = clipText.replaceAll("(\\d{1,2})(:)(\\d{1,2})(:)(\\d{1,2})(pm|am|p\\.m\\.|a\\.m\\.|p\\.\\sm\\.)", "");
         clipText = clipText.replaceAll("(\\d{1,2})(:)(\\d{1,2})(\\s)(pm|am|p\\.m\\.|a\\.m\\.|p\\.\\sm\\.)", "");
+
+        //Elimina formatos no utiles
+        clipText = clipText.replaceAll("(\\d{1,2})(/)(\\d{1,2})", "");
+
 
 
         clipText = clipText.replaceAll("\\$", "bs");
@@ -561,7 +565,7 @@ public class DataExtracts {
                 return newTx;
             }
         }
-        return "";
+        return "0.00";
     }
     private static String getSimple(String rawTx) {
         int count = rawTx.replaceAll("[^\\n]", "").length();

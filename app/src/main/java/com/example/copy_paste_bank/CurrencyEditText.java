@@ -6,12 +6,17 @@ import android.content.res.TypedArray;
 import android.text.InputType;
 import android.text.method.DigitsKeyListener;
 import android.util.AttributeSet;
+
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatEditText;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
 import java.util.Locale;
 import android.graphics.Rect;
+import android.util.Log;
+import android.view.MotionEvent;
 
 
 public class CurrencyEditText extends AppCompatEditText {
@@ -19,6 +24,7 @@ public class CurrencyEditText extends AppCompatEditText {
     private CurrencyInputWatcher textWatcher;
     private Locale locale = Locale.forLanguageTag("ES");//locale; //Esto es un experimentoooooo!!!!!!!1//Locale.getDefault();
     private int maxDP;
+    private boolean isTouch = false;
 
     @SuppressLint("PrivateResource")
     public CurrencyEditText(Context context, AttributeSet attrs) {
@@ -98,6 +104,7 @@ public class CurrencyEditText extends AppCompatEditText {
 
     @Override
     public void setText(CharSequence text, BufferType type) {
+        isTouch = false;
         super.setText(text, type);
         if (getText() != null) setSelection(getText().length());
     }
@@ -117,13 +124,34 @@ public class CurrencyEditText extends AppCompatEditText {
 
     @Override
     public void onSelectionChanged(int selStart, int selEnd) {
-        if (currencySymbolPrefix == null) return;
+
+        Log.d("PhotoPicker", "noooooo hayyyyyyyyyy: " );
+
+        if (currencySymbolPrefix == null){
+            return;
+        }
+
         int symbolLength = currencySymbolPrefix.length();
         if (selEnd < symbolLength && getText().toString().length() >= symbolLength) {
             setSelection(symbolLength);
-        } else {
+        }
+        else {
+            if(isTouch) {
+                setSelection( getText().toString().length(),0);
+            }
             super.onSelectionChanged(selStart, selEnd);
         }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+         if(event.getAction() == MotionEvent.ACTION_DOWN){
+             isTouch = !isTouch;
+         }
+
+        return super.onTouchEvent(event);
     }
 
     private static Locale getLocaleFromTag(String localeTag) {
