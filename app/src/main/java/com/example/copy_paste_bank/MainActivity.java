@@ -3,6 +3,7 @@ package com.example.copy_paste_bank;
 import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
@@ -224,17 +225,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mInput1.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
             }
-
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
             }
-
             @Override
             public void afterTextChanged(Editable editable) {
                 GetDollar.mDollar.set(GetDollar.mDollar.size()-1, (float)mInput1.getNumericValue());
+            }
+        });
+
+        mInput2.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if(mInput2.hasFocus()) {
+                    DataExtracts.mResList[4] = getInputValue();
+                }
             }
         });
 
@@ -345,10 +357,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @SuppressLint("SetTextI18n")
     @Override
     public void onClick(View view) {
+
         int itemId = view.getId();
+
+        //Quita al focus a los inputs ------------
+        //Find the currently focused view
+        if(itemId != mInput1.getId()){
+            mInput1.clearFocus();
+        }
+        if(itemId != mInput2.getId()){
+            mInput2.clearFocus();
+        }
+        //----------------------------------------
+
         ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
-        DataExtracts.mResList[4] = getInputValue();
+        //Test
+        //DataExtracts.mResList[4] = getInputValue();
 
         if (itemId == R.id.input2) {
             if(isConv) {

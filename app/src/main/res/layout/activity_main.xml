@@ -232,10 +232,11 @@
         android:layout_height="@dimen/button_h1"
         android:layout_marginTop="30dp"
 
+        android:focusable="true"
         android:padding="2dp"
+
         android:text="Pegar"
         android:textSize="@dimen/inner_text_1"
-
         app:layout_constraintStart_toStartOf="@+id/guideline2"
         app:layout_constraintTop_toBottomOf="@+id/dollarView"
         tools:ignore="SpUsage" />

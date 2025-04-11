@@ -17,6 +17,7 @@ import java.util.Locale;
 import android.graphics.Rect;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.inputmethod.InputMethodManager;
 
 
 public class CurrencyEditText extends AppCompatEditText {
@@ -25,10 +26,14 @@ public class CurrencyEditText extends AppCompatEditText {
     private Locale locale = Locale.forLanguageTag("ES");//locale; //Esto es un experimentoooooo!!!!!!!1//Locale.getDefault();
     private int maxDP;
     private boolean isTouch = false;
+    private Context mContex;
 
     @SuppressLint("PrivateResource")
-    public CurrencyEditText(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    public CurrencyEditText(Context mContext, AttributeSet attrs) {
+        super(mContext, attrs);
+
+        this.mContex = mContext;
+
         boolean useCurrencySymbolAsHint = false;
         setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         setKeyListener(DigitsKeyListener.getInstance("0123456789.,"));
@@ -37,7 +42,7 @@ public class CurrencyEditText extends AppCompatEditText {
         String prefix;
 
         int[] styleable = R.styleable.CurrencyEditText;
-        TypedArray a = context.getTheme().obtainStyledAttributes(attrs, styleable, 0, 0);
+        TypedArray a = mContext.getTheme().obtainStyledAttributes(attrs, styleable, 0, 0);
         try {
             prefix = a.getString(R.styleable.CurrencyEditText_currencySymbol);
             if (prefix == null) prefix = "";
@@ -119,6 +124,9 @@ public class CurrencyEditText extends AppCompatEditText {
         } else {
             removeTextChangedListener(textWatcher);
             if (getText().toString().equals(currencySymbolPrefix)) setText("");
+
+            //Close keyboard
+            ((InputMethodManager) mContex.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(this.getWindowToken(), 0);
         }
     }
 
