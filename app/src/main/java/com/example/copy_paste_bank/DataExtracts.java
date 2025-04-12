@@ -457,11 +457,8 @@ public class DataExtracts {
         //mDebug[0] = rawTx;
 
         for(String newTx:mony){
-            rawTx = rawTx.replaceAll("[^a-z]"+newTx+"[^a-z]", "_bs_");
+            rawTx = rawTx.replaceAll("[^a-z\\d]"+newTx+"[^a-z\\d]", "_bs_");
         }
-
-        rawTx = rawTx.replaceAll("([^0-9,.bs_|])", "");
-        rawTx = rawTx.replaceAll("((^|_)[bs](_|$))", "");
 
         for (String txTest : rawTx.split("_")){
             String txCopy = txTest.replaceAll("\\D", "");
@@ -473,6 +470,12 @@ public class DataExtracts {
                 }
             }
         }
+
+        rawTx = rawTx.replaceAll("([^0-9,.bs_|])", "");
+        rawTx = rawTx.replaceAll("((^|_)[bs](_|$))", "");
+
+        //mDebug[0] = rawTx;
+
         rawTx = rawTx.replaceAll("(_)+", "_");
 
         //Basic.msg("-> "+rawTx);
@@ -500,6 +503,7 @@ public class DataExtracts {
             }
             //Basic.msg("-> "+grCopy);
         }
+
         rawTx = rawTx.replaceAll("bs", "_bs_");
         //Basic.msg("-> "+rawTx);
 
@@ -512,6 +516,8 @@ public class DataExtracts {
             grCopy = grCopy.replaceAll("_{2,}", "_");
             rawTx = rawTx.replace(gr, grCopy);
         }
+
+
 
         patt = Pattern.compile("((\\d+)(\\.)(\\d{1,2})_)");
         matc = patt.matcher(rawTx);
