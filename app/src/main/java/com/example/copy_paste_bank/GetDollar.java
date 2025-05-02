@@ -126,7 +126,7 @@ public class GetDollar {
                             if(idx == (mUrl.size()-1)) {
                                 mTextView.setText(Basic.setFormatter(GetDollar.mDollar.get(idx).toString()) + " Bs");
                             }
-                            List<String> mSpinL1 = Arrays.asList("BCV", "Promedio", "Paralelo", "Valor Perzonalizado");
+                            List<String> mSpinL1 = Arrays.asList("BCV", "Promedio", "Paralelo", "Valor Personalizado");
                             for (int i = 0; i < mSpinL1.size(); i++) {
                                 String tx = mSpinL1.get(i) + (i == mSpinL1.size()-1 ? "" : " "+Basic.setFormatter(GetDollar.mDollar.get(i).toString())+" Bs");
                                 mSpinL1.set(i, tx);

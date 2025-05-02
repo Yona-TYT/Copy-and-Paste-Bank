@@ -454,17 +454,34 @@ public class DataExtracts {
         String[] mony = {"monto_(bs.)","monto_bs","bs","bs.","bolos","bsf","bolivares","monto", "dolar", "verdes", "dolares"};
 
         rawTx = rawTx.replaceAll("([\\n\\s])", "_");
-        //mDebug[0] = rawTx;
+        mDebug[0] = rawTx;
 
         for(String newTx:mony){
             rawTx = rawTx.replaceAll("[^a-z\\d]"+newTx+"[^a-z\\d]", "_bs_");
         }
 
-        for (String txTest : rawTx.split("_")){
-            String txCopy = txTest.replaceAll("\\D", "");
-            for(String newTx : numList){
+        Pattern patt = Pattern.compile("((\\d{4})([^a-z\\d])(\\d{3})([^a-z\\d])(\\d{4}))");
+        Matcher matc = patt.matcher(rawTx);
+
+        if(matc.find()){
+            String gr = matc.group(1);
+            assert gr != null;
+            String grCopy = gr.replaceAll("\\D", "");
+            //Basic.msg("-> "+grCopy);
+            for (String newTx : numList) {
                 //Basic.msg("newTx-"+txCopy);
-                if(newTx.equals(txCopy)){
+                if (newTx.equals(grCopy)) {
+                    rawTx = rawTx.replace(gr, "");
+                    break;
+                }
+            }
+            //Basic.msg("-> "+grCopy);
+        }
+        for (String txTest : rawTx.split("_")) {
+            String txCopy = txTest.replaceAll("\\D", "");
+            for (String newTx : numList) {
+                //Basic.msg("newTx-"+txCopy);
+                if (newTx.equals(txCopy)) {
                     rawTx = rawTx.replace(txTest, "");
                     break;
                 }
@@ -480,8 +497,8 @@ public class DataExtracts {
 
         //Basic.msg("-> "+rawTx);
 
-        Pattern patt = Pattern.compile("((^|_)\\d{1,3}([._]\\d{3})*(,\\d+)?(_|$))");
-        Matcher matc = patt.matcher(rawTx);
+        Pattern.compile("((^|_)\\d{1,3}([._]\\d{3})*(,\\d+)?(_|$))");
+        patt.matcher(rawTx);
         if(matc.find()){
             String gr = matc.group(1);
             assert gr != null;

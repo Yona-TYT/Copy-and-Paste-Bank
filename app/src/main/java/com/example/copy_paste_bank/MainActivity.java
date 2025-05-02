@@ -3,7 +3,6 @@ package com.example.copy_paste_bank;
 import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
@@ -66,7 +65,7 @@ import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     private static final int STORAGE_PERMISSION_CODE = 23;
     private static final int CAMERA_PERMISSION_CODE = 100;
@@ -97,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private CurrencyEditText mInput2;
 
     private Spinner mSpin1;
-    private List<String> mSpinL1 = Arrays.asList("BCV", "Promedio", "Paralelo", "Valor Perzonalizado");
+    private List<String> mSpinL1 = Arrays.asList("BCV", "Promedio", "Paralelo", "Valor Personalizado");
     private int currSel1 = 0;
 
     private Switch mSw1;
@@ -112,6 +111,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Uri photoUri;
     private TextRecognizer recognizer;
 
+    private Launcher mLaunch;
+
     private ActivityMainBinding binding;
 
     @SuppressLint("MissingInflatedId")
@@ -120,10 +121,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-
-        if (!checkStoragePermissions()) {
-            requestForStoragePermissions();
-        }
 
         // Initialize ML Kit Text Recognizer
         recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
@@ -163,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mButt8.setOnClickListener(this);
         mButt9.setOnClickListener(this);
         mBtnImg1.setOnClickListener(this);
-        mBtnImg1.setOnLongClickListener(this);
+        //mBtnImg1.setOnLongClickListener(this);
 
         mInput2.setOnClickListener(this);
         mSw1.setOnClickListener(this);
@@ -180,7 +177,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             throw new RuntimeException(e);
         }
 
-        setupActivityResultLaunchers();
+        mLaunch = new Launcher(this.getActivityResultRegistry(), this.getApplicationContext(), new Launcher.OnCapture() {
+            @Override
+            public void invoke(Uri uri) {
+                try {
+                    InputStream stream = getContentResolver().openInputStream(uri);
+                    Bitmap bitmap = BitmapFactory.decodeStream(stream);
+                    processImage(bitmap);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        Launcher clazz = mLaunch;
+        getLifecycle().addObserver(clazz);
+
+        mBtnImg1.setOnClickListener(v -> {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    mLaunch.launchPicker();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        mBtnImg1.setOnLongClickListener(v -> {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    mLaunch.launchCamera();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return false;
+        });
 
         //Para la lista de Monitores de dolar ------------------------------------------------------
         SelecAdapter adapt1 = new SelecAdapter(this, mSpinL1);
@@ -269,45 +302,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private void setupActivityResultLaunchers() {
-        takePictureLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
-            if (success) {
-                try {
-
-                    InputStream stream = getContentResolver().openInputStream(photoUri);
-                    Bitmap bitmap = BitmapFactory.decodeStream(stream);
-                    //binding.imageView.setImageBitmap(bitmap);
-                    processImage(bitmap);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        selectPictureLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
-            if (uri != null) {
-                try {
-                    InputStream stream = getContentResolver().openInputStream(uri);
-                    Bitmap bitmap = BitmapFactory.decodeStream(stream);
-                    //binding.imageView.setImageBitmap(bitmap);
-                    processImage(bitmap);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-    private void dispatchSelectPictureIntent() {
-        selectPictureLauncher.launch("image/*");
-    }
-
-    private void dispatchTakePictureIntent() throws IOException {
-        File imageFile = File.createTempFile("IMG_", ".jpg", getCacheDir());
-        photoUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", imageFile);
-        takePictureLauncher.launch(photoUri);
-    }
-
     private void processImage(Bitmap bitmap) {
         if(bitmap == null){
             return;
@@ -339,21 +333,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recognizer.close();
     }
 
-    @Override
-    public boolean onLongClick(View view) {
-        int itemId = view.getId();
-        if (itemId == R.id.buttimag1) {
-            if( requestForCameraPermissions() || mCamPermiss) {
-                try {
-                    dispatchTakePictureIntent();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-        return false;
-    }
-
     @SuppressLint("SetTextI18n")
     @Override
     public void onClick(View view) {
@@ -379,22 +358,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if(isConv) {
                 isConv = false;
                 mSw1.setChecked(false);
-            }
-        }
-
-        if (itemId == R.id.buttimag1) {
-            if(!mPermiss) {
-                mPermiss = checkStoragePermissions();
-                if (!mPermiss){
-                    requestForStoragePermissions();
-                }
-            }
-            if (mPermiss) {
-                // Launch the photo picker and let the user choose only images.
-                dispatchSelectPictureIntent();
-            }
-            else {
-                Basic.msg("Error Permiso Denegado!");
             }
         }
 
@@ -616,112 +579,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return str.substring(0, 4)+"-"+str.substring(4);
     }
 
-    private boolean checkStoragePermissions(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.MANAGE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                return true;
-            }
-            //Android is 11 (R) or above
-            else if (Environment.isExternalStorageManager()){
-                Log.d("PhotoPicker", " Permiso Aquiiiiiiiiii Hayyyyyy 11100------------------------: " );
-                return true;
-            }
-            else {
-                try {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                    intent.addCategory("android.intent.category.DEFAULT");
-                    intent.setData(Uri.parse(String.format("package:%s", getApplicationContext().getPackageName())));
-                    startActivityIfNeeded(intent, 101);
-                    return true;
-                }
-                catch (Exception e) {
-                    Intent intent = new Intent();
-                    intent.setAction(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                    startActivityIfNeeded(intent, 101);
-                    return true;
-                }
-            }
-        }
-        else {
-            Log.d("PhotoPicker", " -----Permiso Aquiiiiiiiiii Hayyyyyy 11100------------------------: " );
-
-            //Below android 11
-            int write = ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            int read = ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE);
-
-            return read == PackageManager.PERMISSION_GRANTED && write == PackageManager.PERMISSION_GRANTED;
-        }
-    }
-
-    private ActivityResultLauncher<Intent> storageActivityResultLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
-                    new ActivityResultCallback<ActivityResult>(){
-                        @Override
-                        public void onActivityResult(ActivityResult o) {
-                            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-                                //Android is 11 (R) or above
-                                if(Environment.isExternalStorageManager()) {
-                                    //Manage External Storage Permissions Granted
-                                    Log.d(TAG, "onActivityResult: Manage External Storage Permissions Granted");
-                                }
-                                else {
-                                    Toast.makeText(MainActivity.this, "Storage Permissions Denied", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        }
-                    });
-
-    void requestForStoragePermissions() {
-        //Android is 11 (R) or above
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-            try {
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                Uri uri = Uri.fromParts("package", this.getPackageName(), null);
-                intent.setData(uri);
-                storageActivityResultLauncher.launch(intent);
-            }
-            catch (Exception e){
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                storageActivityResultLauncher.launch(intent);
-            }
-        }
-        else{
-            //Below android 11
-            ActivityCompat.requestPermissions(
-                    this,
-                    new String[]{
-                            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                            Manifest.permission.READ_EXTERNAL_STORAGE
-                    },
-                    STORAGE_PERMISSION_CODE
-            );
-        }
-    }
-
-    private boolean requestForCameraPermissions() {
-        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
-        }
-        else{
-            return true;
-        }
-        return false;
-    }
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Basic.msg("Permisos de Camara ACEPTADOS");
-                mCamPermiss = true;
-            } else {
-                Basic.msg("Permisos de Camara Denegados");
-            }
-        }
-    }
-
     private String getInputValue(){
         if(isConv){
             return mResList[4];
@@ -730,5 +587,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return Basic.setFormatter(Double.toString(mInput2.getNumericValue()));
         }
     }
+
 }
 
