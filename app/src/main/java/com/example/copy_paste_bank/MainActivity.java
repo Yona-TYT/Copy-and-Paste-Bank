@@ -463,11 +463,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Monto
         if (itemId == R.id.butt6) {
-            if(mResList[4].isEmpty()){
+            if(getInputValue().isEmpty()){
                 Basic.msg("Este Campo esta VACIO!:");
             }
             else {
-                ClipData clipData = ClipData.newPlainText("Clip Data", (isConv? mConver : mResList[4]));
+                ClipData clipData = ClipData.newPlainText("Clip Data", (isConv? mConver : getInputValue()));
                 clipboard.setPrimaryClip(clipData);
                 Basic.msg("Monto Copiado al portapapeles.");
             }
@@ -475,11 +475,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Todos los datos
         if (itemId == R.id.butt7) {
-            if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && (isConv? mConver : mResList[4]).isEmpty()){
+            if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && (isConv? mConver : getInputValue()).isEmpty()){
                 Basic.msg("Los campos estan VACIOS!:");
             }
             else {
-                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + (isConv? mConver : mResList[4]));
+                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + (isConv? mConver : getInputValue()));
                 clipboard.setPrimaryClip(clipData);
                 Basic.msg("Los datos se han copiado al portapapeles.");
             }
