@@ -45,10 +45,14 @@ import androidx.core.view.WindowInsetsCompat;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -530,10 +534,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mText1.setText(formatPhone(mResList[0]));              //Telf + Area
         mText2.setText(mResList[1]);                           // Telf
+
+
         mText3.setText(formatNumber(mResList[2], true));    // Cedula
         mText4.setText(mResList[3]+" "+mResList[5]);           // Codig Banco
         mInput2.setText(formatNumber(mResList[4], false));   //Monto
-        mText5.setText(mDebug[0]);
+        mText5.setText( mDebug[0]);                              // Debug
         if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && mResList[4].isEmpty()){
             Basic.msg("No se encontraron DATOS!");
         }
@@ -542,9 +548,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isConv = false;
             mSw1.setChecked(false);
 
-            ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
-            clipboard.setPrimaryClip(clipData);
-            Basic.msg("Pegado y copiado al portapapeles.");
+            //ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
+            //clipboard.setPrimaryClip(clipData);
+            //Basic.msg("Pegado y copiado al portapapeles.");
         }
     }
     public String formatNumber(String str, boolean id) {
@@ -559,10 +565,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(id) {
             type += str.charAt(0);
             str = str.replaceAll("\\D", "");
-            if(str.startsWith("0")){
-                return type+str;
+
+            int mSiz = str.length();
+            List<String> mResult = new ArrayList<>();
+            String mResEnd = "";
+            for(int a = mSiz, b = mSiz-3 ; b >= 0 ; a-=3, b-=3){
+                mResult.add(str.substring(b,a));
+                mResEnd = str.substring(0,b);
             }
-            formatter.applyPattern("###,###.##");
+
+            Collections.reverse(mResult);
+            StringBuilder complete = new StringBuilder();
+            for(String s : mResult){
+                complete.append(".").append(s);
+            }
+            return type+"-"+(mResEnd+complete).replaceAll("^\\D+","");
         }
         else {
             formatter.applyPattern("###,##0.00");
@@ -570,7 +587,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         str = str.replaceAll("\\.", "");
         str = str.replaceAll(",", ".");
 
-        return  type+formatter.format(Float.parseFloat(str));
+        return formatter.format(Float.parseFloat(str));
     }
     public String formatPhone(String str) {
         if(str.isEmpty()){

@@ -11,15 +11,15 @@ import java.util.regex.Pattern;
 
 public class DataExtracts {
     private static final List<String> mTypeList = Arrays.asList("v","j","g","p","e","r","c" );
-    private static final List<String> mAreaList = Arrays.asList("0426", "0416", "0414", "0412", "0424");
+    private static final List<String> mAreaList = Arrays.asList("0426", "0416", "0414", "0412", "0424", "0422");
     private static final List<String> mBankList = Arrays.asList(
-            "0102;BDV DE_VENEZUELA;VNZ VNZL VENEZUELA;Venezuela",
+            "0102;BDV DE_VENEZUELA;VNZ VENZ VNZL VENEZUELA;Venezuela",
             "0156;100%;100%_BANCO;100%Banco",
             "0172;BANCAMIGA;|;Bancamiga",
             "0114;BANCARIBE;|;Bancaribe",
             "0171;ACTIVO;|;Bco. Activo",
+            "0175;BDT BICENTENARIO DE_LOS_TRABAJADORES;TRABAJADORES;BDT",
             "0166;AGRICOLA;BA BAV;BAgricola",
-            "0175;BDT BICENTENARIO;TRABAJADORES;BDT",
             "0128;CARONI;|;Bco. Caroni",
             "0163;DEL_TESORO;BT TESORO;BDTesoro",
             "0115;EXTERIOR;BE;BExterior",
@@ -114,7 +114,7 @@ public class DataExtracts {
             txNum[idx] = "";    //Clear the bank number
         }
         else {
-            String[] bankCode = validateBankName(txList, txAll);
+            String[] bankCode = validateBankName(txList, copyTx);
             if(!bankCode[0].isEmpty()){
                 mResList[3] = bankCode[0];
                 mResList[5] = bankCode[1];
@@ -397,55 +397,69 @@ public class DataExtracts {
         return new Object[]{-1,"",""};
     }
 
-    private static String[] validateBankName(List<String> numList, String[] list) {
-        for (String s : list) {
-            String text = s;
+    private static String[] validateBankName(List<String> numList, String rawTx) {
             for (String newTx : numList) {
-                text = text.replace(newTx, "");
+                rawTx = rawTx.replace(newTx, "");
             }
             for (String newTx : mTypeList) {
-                text = text.replaceAll("(^" + Pattern.quote(newTx) + "$)", "");
+                rawTx = rawTx.replaceAll("(^" + Pattern.quote(newTx) + "$)", "");
             }
-            if (text.isEmpty()) {
-                continue;
-            }
-            text = text.replaceAll("(^_)|(_$)","");
-            //Basic.msg("->? "+text);
+
+            rawTx = rawTx.replaceAll("\\s","_");
+
+
+            rawTx = rawTx.replaceAll("(^_)|(_$)","");
+
+        mDebug[0] = rawTx ;
+
+        //Basic.msg("->? "+text);
             for (String newTx : mBankList) {
                 String[] strList = newTx.split(";");
-                String pattern = "\\b" + Pattern.quote(text) + "\\b";
+                String pattern = "\\b" + Pattern.quote(rawTx) + "\\b";
                 Pattern p = Pattern.compile(pattern);
                 Matcher m = p.matcher(strList[1].toLowerCase());
                 if (m.find()) {
                     return new String[]{strList[0], strList[3]};
                 }
-                for (String ttx : text.split("_")) {
-                    pattern = "\\b" + Pattern.quote(ttx) + "\\b";
-                    p = Pattern.compile(pattern);
-                    m = p.matcher(strList[1].toLowerCase());
-                    if (m.find()) {
+//                for (String ttx : rawTx.split("_")) {
+//                    pattern = "\\b" + Pattern.quote(ttx) + "\\b";
+//                    p = Pattern.compile(pattern);
+//                    m = p.matcher(strList[1].toLowerCase());
+//                    if (m.find()) {
+//                        return new String[]{strList[0], strList[3]};
+//                    }
+//                }
+                for (String ttx : strList[1].toLowerCase().split(" ")) {
+                    if(rawTx.contains(ttx)){
+                        //mDebug[0] = ttx;
                         return new String[]{strList[0], strList[3]};
                     }
                 }
             }
             for (String newTx : mBankList) {
                 String[] strList = newTx.split(";");
-                String pattern = "\\b" + Pattern.quote(text) + "\\b";
+                String pattern = "\\b" + Pattern.quote(rawTx) + "\\b";
                 Pattern p = Pattern.compile(pattern);
                 Matcher m = p.matcher(strList[2].toLowerCase());
                 if (m.find()) {
                     return new String[]{strList[0], strList[3]};
                 }
-                for (String ttx : text.split("_")) {
-                    pattern = "\\b" + Pattern.quote(ttx) + "\\b";
-                    p = Pattern.compile(pattern);
-                    m = p.matcher(strList[2].toLowerCase());
-                    if (m.find()) {
+//                for (String ttx : rawTx.split("_")) {
+//                    pattern = "\\b" + Pattern.quote(ttx) + "\\b";
+//                    p = Pattern.compile(pattern);
+//                    m = p.matcher(strList[2].toLowerCase());
+//                    if (m.find()) {
+//                        return new String[]{strList[0], strList[3]};
+//                    }
+//                }
+                for (String ttx : strList[2].toLowerCase().split(" ")) {
+                    if(rawTx.contains(ttx)){
+                        //mDebug[0] = ttx;
                         return new String[]{strList[0], strList[3]};
                     }
                 }
             }
-        }
+
         return new String[]{"",""};
     }
 
@@ -454,7 +468,7 @@ public class DataExtracts {
         String[] mony = {"monto_(bs.)","monto_bs","bs","bs.","bolos","bsf","bolivares","monto", "dolar", "verdes", "dolares"};
 
         rawTx = rawTx.replaceAll("([\\n\\s])", "_");
-        mDebug[0] = rawTx;
+        //mDebug[0] = rawTx;
 
         for(String newTx:mony){
             rawTx = rawTx.replaceAll("[^a-z\\d]"+newTx+"[^a-z\\d]", "_bs_");
