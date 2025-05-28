@@ -129,7 +129,7 @@
         android:padding="2dp"
         android:text=""
         android:textSize="@dimen/txview_h1"
-        android:visibility="visible"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.433"
