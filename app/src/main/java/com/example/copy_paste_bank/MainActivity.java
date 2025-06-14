@@ -1,22 +1,15 @@
 package com.example.copy_paste_bank;
 
-import static android.content.ContentValues.TAG;
-
 import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -25,29 +18,19 @@ import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -56,8 +39,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-
-import android.Manifest;
 
 import com.example.copy_paste_bank.databinding.ActivityMainBinding;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -69,7 +50,7 @@ import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener{
 
     private static final int STORAGE_PERMISSION_CODE = 23;
     private static final int CAMERA_PERMISSION_CODE = 100;
@@ -78,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Button mButt1;
     private Button mButt2;
-    private Button mButt3;
     private Button mButt4;
     private Button mButt5;
     private Button mButt6;
@@ -89,7 +69,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton mBtnImg1;
 
     private TextView mText1;
-    private TextView mText2;
     private TextView mText3;
     private TextView mText4;
     private TextView mText5; //Test only
@@ -131,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mButt1 = findViewById(R.id.butt1);
         mButt2 = findViewById(R.id.butt2);
-        mButt3 = findViewById(R.id.butt3);
         mButt4 = findViewById(R.id.butt4);
         mButt5 = findViewById(R.id.butt5);
         mButt6 = findViewById(R.id.butt6);
@@ -141,7 +119,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBtnImg1 = findViewById(R.id.buttimag1);
 
         mText1 = findViewById(R.id.text1);
-        mText2 = findViewById(R.id.text2);
         mText3 = findViewById(R.id.text3);
         mText4 = findViewById(R.id.text4);
         mText5 = findViewById(R.id.text6);//Test only
@@ -156,7 +133,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mButt1.setOnClickListener(this);
         mButt2.setOnClickListener(this);
-        mButt3.setOnClickListener(this);
         mButt4.setOnClickListener(this);
         mButt5.setOnClickListener(this);
         mButt6.setOnClickListener(this);
@@ -165,6 +141,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mButt9.setOnClickListener(this);
         mBtnImg1.setOnClickListener(this);
         //mBtnImg1.setOnLongClickListener(this);
+
+        mButt2.setOnLongClickListener(this);
+        mButt4.setOnLongClickListener(this);
+        mButt8.setOnLongClickListener(this);
 
         mInput2.setOnClickListener(this);
         mSw1.setOnClickListener(this);
@@ -429,18 +409,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-        //Telefono Sin Area
-        if (itemId == R.id.butt3) {
-            if(mResList[1].isEmpty()){
-                Basic.msg("Este Campo esta VACIO!:");
-            }
-            else {
-                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[1]);
-                clipboard.setPrimaryClip(clipData);
-                Basic.msg("Telf Sin Area copiado al portapapeles.");
-            }
-        }
-
         //Cedula
         if (itemId == R.id.butt4) {
             if(mResList[2].isEmpty()){
@@ -511,6 +479,80 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    @Override
+    public boolean onLongClick(View view) {
+        int itemId = view.getId();
+
+        //Quita al focus a los inputs ------------
+        //Find the currently focused view
+        if(itemId != mInput1.getId()){
+            mInput1.clearFocus();
+        }
+        if(itemId != mInput2.getId()){
+            mInput2.clearFocus();
+        }
+        //----------------------------------------
+
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+
+        //Telefono Sin Area
+        if (itemId == R.id.butt2) {
+            if(mResList[1].isEmpty()){
+                Basic.msg("Este Campo esta VACIO!:");
+            }
+            else {
+                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[1]);
+                clipboard.setPrimaryClip(clipData);
+                Basic.msg("Telf Sin Area copiado al portapapeles.");
+            }
+        }
+
+        //Cedula sin Indicador de Tipo
+        if (itemId == R.id.butt4) {
+            if(mResList[2].isEmpty()){
+                Basic.msg("Este Campo esta VACIO!:");
+            }
+            else {
+                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[2].replaceAll("\\D",""));
+                clipboard.setPrimaryClip(clipData);
+                Basic.msg("ID sin TIPO copiado al portapapeles.");
+            }
+        }
+
+//        //Codigo Banco
+//        if (itemId == R.id.butt5) {
+//            if(mResList[3].isEmpty()){
+//                Basic.msg("Este Campo esta VACIO!:");
+//            }
+//            else {
+//                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[3]);
+//                clipboard.setPrimaryClip(clipData);
+//                Basic.msg("Codg. Banco Copiado al portapapeles.");
+//            }
+//        }
+
+//        //Monto
+//        if (itemId == R.id.butt6) {
+//            if(getInputValue().isEmpty()){
+//                Basic.msg("Este Campo esta VACIO!:");
+//            }
+//            else {
+//                ClipData clipData = ClipData.newPlainText("Clip Data", (isConv? mConver : getInputValue()));
+//                clipboard.setPrimaryClip(clipData);
+//                Basic.msg("Monto Copiado al portapapeles.");
+//            }
+//        }
+
+        //Debug
+        if (itemId == R.id.butt8) {
+            ClipData clipData = ClipData.newPlainText("Clip Data", mText5.getText());
+            clipboard.setPrimaryClip(clipData);
+            Basic.msg("Debug Copiado al portapapeles.");
+        }
+
+        return true;
+    }
+
     @SuppressLint("SetTextI18n")
     public void actionTrigger(ClipboardManager clipboard, String text){
         //Se limpian los valores residuales
@@ -523,7 +565,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mDebug[0] = "";
 
         mText1.setText("");     // Telf + Area
-        mText2.setText("");     // Telf
         mText3.setText("");     // Cedula
         mText4.setText("");     // Codig Banco
         mInput2.setText("");     // Monto
@@ -533,9 +574,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         DataExtracts.startinProcess(text);
 
         mText1.setText(formatPhone(mResList[0]));              //Telf + Area
-        mText2.setText(mResList[1]);                           // Telf
-
-
         mText3.setText(formatNumber(mResList[2], true));    // Cedula
         mText4.setText(mResList[3]+" "+mResList[5]);           // Codig Banco
         mInput2.setText(formatNumber(mResList[4], false));   //Monto
@@ -604,6 +642,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return Basic.setFormatter(Double.toString(mInput2.getNumericValue()));
         }
     }
-
 }
 
