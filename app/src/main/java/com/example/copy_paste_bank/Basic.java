@@ -46,62 +46,6 @@ public class Basic {
         return getPixelSiz(id) / scaledDensity;
     }
 
-//    public void keyboardEvent(ConstraintLayout mConstrain, View elm,  List<View> mViewList, int opt) {
-//        // Para eventos al mostrar o ocultar el teclado
-//        mConstrain.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-//            @Override
-//            public void onGlobalLayout() {
-//                // on below line we are creating a variable for rect
-//                Rect rect = new Rect();
-//                View contain = StartVar.mRootView;
-//                // on below line getting frame for our relative layout.
-//                contain.getWindowVisibleDisplayFrame(rect);
-//                // on below line getting screen height for relative layout.
-//                int screenHeight = contain.getRootView().getHeight();
-//                // on below line getting keypad height.
-//                int keypadHeight = screenHeight - rect.bottom;
-//                if (keypadHeight > screenHeight * 0.15) {
-//                    isDow = false;
-//                    isUp = true;
-//
-//                    for (View mView : mViewList) {
-//                        if(mView != null) {
-//                            mView.setVisibility(View.INVISIBLE);
-//                        }
-//                    }
-//                    //Toast.makeText(MainActivity.this, "Keyboard is +", Toast.LENGTH_LONG).show();
-//                }
-//                else {
-//                    isDow = true;
-//                    isUp = false;
-//                    //Toast.makeText(mContex, "Keyboard is -", Toast.LENGTH_LONG).show();
-//
-//                    if (elm != null) {
-//                        //Toast.makeText(mContex, "Aqui hayyyyyyyy?  " , Toast.LENGTH_LONG).show();
-//                        elm.clearFocus();
-//                    }
-//
-//                    for (View mView : mViewList) {
-//                        if(mView != null) {
-//                            mView.setVisibility(View.VISIBLE);
-//                        }
-//                    }
-//                    mConstrain.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-//
-//                }
-//            }
-//        });
-//    }
-
-//    public void steAllKeyEvent(ConstraintLayout mConstrain, List<EditText> mInputList) {
-//        for (int i = 0; i < mInputList.size(); i++) {
-//            // Para eventos al mostrar o ocultar el teclado
-//            keyboardEvent(mConstrain, mInputList.get(i), new ArrayList<>(), 0); //opt = 0 is clear elm focus
-//            //-------------------------------------------------------------------------------------
-//        }
-//    }
-
-
     public static void hideKeyboard(Activity activity) {
         InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
         //Find the currently focused view, so we can grab the correct window token from it.
@@ -166,63 +110,12 @@ public class Basic {
         return Objects.requireNonNull(formatter.parse(value)).floatValue();
     }
 
-//    @SuppressLint("DefaultLocale")
-//    public static String setValue(String value) {
-//        value = value.replaceAll("([^\\d.,])","");
-//        if (value.isEmpty()){
-//            value = "0";
-//        }
-//        float precDoll = floatFormat(StartVar.mDollar);
-//        float number = Float.parseFloat(value);
-//        if (StartVar.mCurrency == 1) {    //Selector en Bs
-//            number = number / precDoll;
-//        }
-//        return Float.toString(number);
-//    }
-
-//    @SuppressLint("DefaultLocale")
-//    public static String getValue(String value) {
-//        value = value.replaceAll("([^\\d.,])","");
-//        value = value.replaceAll(",",".");
-//
-//        if (value.isEmpty()){
-//            value = "0";
-//        }
-//        float precDoll = floatFormat(StartVar.mDollar);
-//        float number = Float.parseFloat(value);
-//        if (StartVar.mCurrency == 1) {    //Selector en Bs
-//            number = number * precDoll;
-//        }
-//        return Float.toString(number);
-//    }
-
-//    @SuppressLint("DefaultLocale")
-//    public static String getValueFormatter(String value) {
-//        return setFormatter(getValue(value));
-//    }
     public static Float floatFormat(String value) {
         String mValue = value.replaceAll("([^.\\d])", "");
         mValue = mValue.replaceAll("^.$", "0.00");
 
         return mValue.isEmpty() ? (float)0 : Float.parseFloat(mValue);
     }
-
-//    public static float getDebt(int mult, String mont, String debt) {
-//        mont = mont.replaceAll("([^.0-9]+)", "");
-//        debt = debt.replaceAll("([^.0-9]+)", "");
-//
-//        float precDoll = Basic.floatFormat(StartVar.mDollar);
-//        if (!mont.isEmpty() && !debt.isEmpty()) {
-//            float numA = Float.parseFloat(mont);
-//            float numB = Float.parseFloat(debt);
-//
-//            float result = numA*mult;
-//
-//            result -= numB;
-//            return result;
-//        }
-//        return 0;
-//    }
 
     public static String setMask(String value, String sing) {
         value = setFormatter(value);
