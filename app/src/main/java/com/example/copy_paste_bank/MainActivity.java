@@ -6,7 +6,6 @@ import android.content.ClipboardManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -52,11 +51,6 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener{
 
-    private static final int STORAGE_PERMISSION_CODE = 23;
-    private static final int CAMERA_PERMISSION_CODE = 100;
-    private boolean mPermiss = false;
-    private boolean mCamPermiss = false;
-
     private Button mButt1;
     private Button mButt2;
     private Button mButt4;
@@ -91,7 +85,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ActivityResultLauncher<Uri> takePictureLauncher;
     private ActivityResultLauncher<String> selectPictureLauncher;
-    private Uri photoUri;
     private TextRecognizer recognizer;
 
     private Launcher mLaunch;
@@ -163,9 +156,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mLaunch = new Launcher(this.getActivityResultRegistry(), this.getApplicationContext(), new Launcher.OnCapture() {
             @Override
-            public void invoke(Uri uri) {
+            public void invoke(List<Uri> uris) {
                 try {
-                    InputStream stream = getContentResolver().openInputStream(uri);
+                    InputStream stream = getContentResolver().openInputStream(uris.get(0));
                     Bitmap bitmap = BitmapFactory.decodeStream(stream);
                     processImage(bitmap);
                 }
@@ -175,29 +168,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        Launcher clazz = mLaunch;
-        getLifecycle().addObserver(clazz);
+        getLifecycle().addObserver(mLaunch);
 
-        mBtnImg1.setOnClickListener(v -> {
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    mLaunch.launchPicker();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        // Adjunta al botón para el picker
+        mLaunch.attachToViewPicker(mBtnImg1, false, false);
 
-        mBtnImg1.setOnLongClickListener(v -> {
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    mLaunch.launchCamera();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            return false;
-        });
+        // Adjunta al botón para la camara
+        mLaunch.attachToViewCam(mBtnImg1, true);
 
         //Para la lista de Monitores de dolar ------------------------------------------------------
         SelecAdapter adapt1 = new SelecAdapter(this, mSpinL1);
