@@ -8,5 +8,7 @@
         <attr name="localeTag" format="string"/>
         <attr name="useCurrencySymbolAsHint" format="boolean"/>
         <attr name="maxNumberOfDecimalDigits" format="integer"/>
+        <attr name="viewsToHideIds" format="string" />
+        <attr name="keepFocusOnKeyboardClose" format="boolean" />
     </declare-styleable>
 </resources>

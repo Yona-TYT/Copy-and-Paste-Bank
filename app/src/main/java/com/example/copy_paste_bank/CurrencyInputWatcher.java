@@ -19,6 +19,7 @@ public class CurrencyInputWatcher implements TextWatcher {
     private final int maxNumberOfDecimalPlaces;
 
     private boolean hasDecimalPoint;
+    private int expectedCursorPos;
     private final DecimalFormat wholeNumberDecimalFormat;
     private final DecimalFormat fractionDecimalFormat;
     final DecimalFormatSymbols decimalFormatSymbols;
@@ -59,6 +60,13 @@ public class CurrencyInputWatcher implements TextWatcher {
             }
         }
 
+        // Calcula posición esperada del cursor
+        int numStart = this.currencySymbol.length();
+        if (start == numStart && before == (s.length() - numStart - count)) {
+            this.expectedCursorPos = numStart + count;
+        } else {
+            this.expectedCursorPos = start + count;
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -107,6 +115,7 @@ public class CurrencyInputWatcher implements TextWatcher {
 
         this.editText.removeTextChangedListener(this);
         int startLength = this.editText.getText().length();
+        int selectionEndIndex = this.editText.getSelectionEnd();  // NUEVO: Obtén el end de la selección anterior
         try {
 
             String numberWithoutGroupingSeparator = parseMoneyValue(newInputString, String.valueOf(this.decimalFormatSymbols.getGroupingSeparator()), this.currencySymbol);
@@ -125,14 +134,20 @@ public class CurrencyInputWatcher implements TextWatcher {
             else {
                 this.editText.setText(this.currencySymbol + this.wholeNumberDecimalFormat.format(parsedNumber));
             }
-            int endLength = this.editText.getText().length();
-            int selection = selectionStartIndex + (endLength - startLength);
 
-            if (selection > 0 && selection <= this.editText.getText().length()) {
+
+            int endLength = this.editText.getText().length();
+            int selection = expectedCursorPos + (endLength - startLength);
+            if (selectionEndIndex == startLength) {
+                // FIXED: Difiere al siguiente ciclo para timing de render
+                this.editText.post(() -> this.editText.setSelection(endLength));
+            } else if (selection > 0 && selection <= endLength) {
                 this.editText.setSelection(selection);
             } else {
-                this.editText.setSelection(this.editText.getText().length() - 1);
+                this.editText.setSelection(endLength - 1);
             }
+
+            //Basic.msg( "clamp triggered? selection=" + selection + " > endLen=" + endLength, true);
         }
         catch (ParseException e) {
             e.printStackTrace();
@@ -160,5 +175,4 @@ public class CurrencyInputWatcher implements TextWatcher {
         int noOfCharactersAfterDecimalPoint = number.length() - number.indexOf(this.decimalFormatSymbols.getDecimalSeparator()) - 1;
         return "0".repeat(Math.min(noOfCharactersAfterDecimalPoint, this.maxNumberOfDecimalPlaces));
     }
-
 }
