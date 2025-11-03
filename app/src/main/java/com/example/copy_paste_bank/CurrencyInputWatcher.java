@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 public class CurrencyInputWatcher implements TextWatcher {
     private final EditText editText;
     private final String currencySymbol;
+    private final boolean isSuffix;
     private final Locale locale;
     private final int maxNumberOfDecimalPlaces;
 
@@ -26,9 +27,10 @@ public class CurrencyInputWatcher implements TextWatcher {
 
     private static final String FRACTION_FORMAT_PATTERN_PREFIX = "#,##0.";
 
-    public CurrencyInputWatcher(EditText editText, String currencySymbol, Locale locale, int maxNumberOfDecimalPlaces) {
+    public CurrencyInputWatcher(EditText editText, String currencySymbol, Locale locale, int maxNumberOfDecimalPlaces, boolean isSuffix) {
         this.editText = editText;
         this.currencySymbol = currencySymbol;
+        this.isSuffix = isSuffix;
         this.locale = locale;
         this.maxNumberOfDecimalPlaces = maxNumberOfDecimalPlaces;
 
@@ -51,7 +53,7 @@ public class CurrencyInputWatcher implements TextWatcher {
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
         this.hasDecimalPoint = s.toString().contains(String.valueOf(this.decimalFormatSymbols.getDecimalSeparator()));
-        String newInputString = s.toString();
+        String newInputString = s.toString().replaceAll(this.currencySymbol, "");
         if(newInputString.length() > this.currencySymbol.length()) {
             Pattern patt = Pattern.compile("(\\D$)");
             Matcher m = patt.matcher(newInputString);
@@ -59,33 +61,28 @@ public class CurrencyInputWatcher implements TextWatcher {
                 this.hasDecimalPoint = true;
             }
         }
-
-        // Calcula posición esperada del cursor
-        int numStart = this.currencySymbol.length();
-        if (start == numStart && before == (s.length() - numStart - count)) {
-            this.expectedCursorPos = numStart + count;
-        } else {
-            this.expectedCursorPos = start + count;
-        }
     }
 
+    private static final Pattern NON_DIGIT_END_PATTERN = Pattern.compile("(\\D$)");
+    private static final Pattern DIGIT_NON_DIGIT_END_PATTERN = Pattern.compile("(\\d\\D$)");
     @SuppressLint("SetTextI18n")
     @Override
     public void afterTextChanged(Editable s) {
 
         String newInputString = s.toString();
+        int symbolLength = this.currencySymbol.length();
         if(!newInputString.startsWith(this.currencySymbol)) {
             newInputString = newInputString.replaceAll("([^.,\\d])","");
         }
 
-        if(newInputString.length() > this.currencySymbol.length()) {
-            Pattern patt = Pattern.compile("(\\D$)");
+        if(newInputString.length() > symbolLength) {
+            Pattern patt = NON_DIGIT_END_PATTERN;
             Matcher m = patt.matcher(newInputString);
             if (m.find()) {
                 newInputString = newInputString.replaceAll("\\D$", String.valueOf(this.decimalFormatSymbols.getDecimalSeparator()));
             }
             else {
-                patt = Pattern.compile("(\\d\\D$)");
+                patt = DIGIT_NON_DIGIT_END_PATTERN;
                 m = patt.matcher(newInputString);
                 if (m.find()) {
                     newInputString = newInputString.replaceAll("\\D$", String.valueOf(this.decimalFormatSymbols.getDecimalSeparator()));
@@ -101,24 +98,43 @@ public class CurrencyInputWatcher implements TextWatcher {
             isParsableString = false;
         }
 
-        if (newInputString.length() < this.currencySymbol.length() && !isParsableString) {
+        if (newInputString.length() < symbolLength && !isParsableString) {
 
-            this.editText.setText(this.currencySymbol);
-            this.editText.setSelection(this.currencySymbol.length());
+            String formatted = this.wholeNumberDecimalFormat.format(0);
+            if (this.isSuffix) {
+
+                this.editText.setText(formatted + this.currencySymbol);
+                this.editText.setSelection(1);
+            }
+            else {
+
+                this.editText.setText(this.currencySymbol + formatted);
+                this.editText.setSelection(this.editText.getText().length());
+            }
             return;
         }
 
         if (newInputString.equals(this.currencySymbol)) {
-            this.editText.setSelection(this.currencySymbol.length());
+
+            String formatted = this.wholeNumberDecimalFormat.format(0);
+            if (this.isSuffix) {
+
+                this.editText.setText(formatted + this.currencySymbol);
+                this.editText.setSelection(1);
+            }
+            else {
+
+                this.editText.setText(this.currencySymbol + formatted);
+                this.editText.setSelection(this.editText.getText().length());
+            }
             return;
         }
 
         this.editText.removeTextChangedListener(this);
         int startLength = this.editText.getText().length();
-        int selectionEndIndex = this.editText.getSelectionEnd();  // NUEVO: Obtén el end de la selección anterior
         try {
 
-            String numberWithoutGroupingSeparator = parseMoneyValue(newInputString, String.valueOf(this.decimalFormatSymbols.getGroupingSeparator()), this.currencySymbol);
+            String numberWithoutGroupingSeparator = parseMoneyValue(newInputString, String.valueOf(this.decimalFormatSymbols.getGroupingSeparator()), this.currencySymbol, this.isSuffix);
             if (numberWithoutGroupingSeparator.equals(String.valueOf(this.decimalFormatSymbols.getDecimalSeparator()))) {
                 numberWithoutGroupingSeparator = "0" + numberWithoutGroupingSeparator;
             }
@@ -129,25 +145,32 @@ public class CurrencyInputWatcher implements TextWatcher {
             int selectionStartIndex = this.editText.getSelectionStart();
             if (this.hasDecimalPoint) {
                 this.fractionDecimalFormat.applyPattern(FRACTION_FORMAT_PATTERN_PREFIX + getFormatSequenceAfterDecimalSeparator(numberWithoutGroupingSeparator));
-                this.editText.setText(this.currencySymbol + this.fractionDecimalFormat.format(parsedNumber));
+                String formatted = this.fractionDecimalFormat.format(parsedNumber);
+                this.editText.setText(this.isSuffix ? formatted + this.currencySymbol : this.currencySymbol + formatted);
+            } else {
+                String formatted = this.wholeNumberDecimalFormat.format(parsedNumber);
+                this.editText.setText(this.isSuffix ? formatted + this.currencySymbol : this.currencySymbol + formatted);
             }
-            else {
-                this.editText.setText(this.currencySymbol + this.wholeNumberDecimalFormat.format(parsedNumber));
-            }
-
 
             int endLength = this.editText.getText().length();
-            int selection = expectedCursorPos + (endLength - startLength);
-            if (selectionEndIndex == startLength) {
-                // FIXED: Difiere al siguiente ciclo para timing de render
-                this.editText.post(() -> this.editText.setSelection(endLength));
-            } else if (selection > 0 && selection <= endLength) {
-                this.editText.setSelection(selection);
-            } else {
-                this.editText.setSelection(endLength - 1);
-            }
+            int selection = selectionStartIndex + (endLength - startLength);
 
-            //Basic.msg( "clamp triggered? selection=" + selection + " > endLen=" + endLength, true);
+            if (this.isSuffix) {
+                if (selection >= 0 && selection <= this.editText.getText().length()) {
+                    this.editText.setSelection(selection);
+                }
+                else {
+                    this.editText.setSelection(this.editText.getText().length() - symbolLength);
+                }
+            }
+            else {
+                if (selection >= 0 && selection <= this.editText.getText().length()) {
+                    this.editText.setSelection(selection);
+                }
+                else {
+                    this.editText.setSelection(symbolLength);
+                }
+            }
         }
         catch (ParseException e) {
             e.printStackTrace();
@@ -155,8 +178,18 @@ public class CurrencyInputWatcher implements TextWatcher {
         this.editText.addTextChangedListener(this);
     }
 
-    private static String parseMoneyValue(String inputString, String groupingSeparator, String currencySymbol) {
-        return inputString.replace(groupingSeparator, "").replace(currencySymbol, "");
+    private static String parseMoneyValue(String inputString, String groupingSeparator, String currencySymbol, boolean isSuffix) {  // NUEVO: + bool isSuffix
+        inputString = inputString.replace(groupingSeparator, "");
+        if (isSuffix) {
+            // Remueve sufijo al final
+            if (inputString.endsWith(currencySymbol)) {
+                inputString = inputString.replace(currencySymbol, "");
+            }
+        }
+        else {
+            inputString = inputString.replace(currencySymbol, "");
+        }
+        return inputString;
     }
 
     private static String truncateNumberToMaxDecimalDigits(String numberString, int maxDecimalDigits, char decimalSeparator) {

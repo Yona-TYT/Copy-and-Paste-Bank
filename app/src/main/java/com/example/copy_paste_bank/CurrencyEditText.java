@@ -1,13 +1,15 @@
 package com.example.copy_paste_bank;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.text.InputType;
 import android.text.method.DigitsKeyListener;
 import android.util.AttributeSet;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatEditText;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -18,15 +20,17 @@ import java.util.Locale;
 import android.graphics.Rect;
 import android.util.Log;
 import android.view.GestureDetector;
-import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 
+import android.view.ActionMode;
 
 public class CurrencyEditText extends AppCompatEditText {
-    private String currencySymbolPrefix = null;
+    private String currencySymbolStr = null;
     private CurrencyInputWatcher textWatcher;
     private Locale locale = Locale.forLanguageTag("ES");//locale; //Esto es un experimentoooooo!!!!!!!1//Locale.getDefault();
     private int maxDP;
@@ -35,6 +39,7 @@ public class CurrencyEditText extends AppCompatEditText {
     private GestureDetector gestureDetector;
     private List<Integer> viewIdsToHide = new ArrayList<>();  // NUEVO: IDs de views a ocultar
     private boolean keepFocusOnKeyboardClose;
+    private boolean currencySymbolSuffix;  // NUEVO: Símbolo como sufijo
 
     @SuppressLint({"PrivateResource", "DiscouragedApi"})
     public CurrencyEditText(Context mContext, AttributeSet attrs) {
@@ -75,32 +80,68 @@ public class CurrencyEditText extends AppCompatEditText {
                 }
             }
             this.viewIdsToHide = viewIdsToHide;
-
             this.keepFocusOnKeyboardClose = a.getBoolean(R.styleable.CurrencyEditText_keepFocusOnKeyboardClose, false);
+            // NUEVO: Parsea si símbolo es sufijo (default false para prefix)
+            this.currencySymbolSuffix = a.getBoolean(R.styleable.CurrencyEditText_currencySymbolSuffix, false);
 
         } finally {
             a.recycle();
         }
-        currencySymbolPrefix = prefix.isEmpty() ? "" : prefix + " ";
-        if (useCurrencySymbolAsHint) setHint(currencySymbolPrefix);
+
+        if(currencySymbolSuffix){
+            currencySymbolStr = prefix.isEmpty() ? "" : " "+prefix;
+        }
+        else {
+            currencySymbolStr = prefix.isEmpty() ? "" : prefix + " ";
+        }
+
+        if (useCurrencySymbolAsHint) setHint(currencySymbolStr);
         if (Basic.isLollipopAndAbove() && localeTag != null && !localeTag.isEmpty()) locale = getLocaleFromTag(localeTag);
-        textWatcher = new CurrencyInputWatcher(this, currencySymbolPrefix, locale, maxDP);
+        textWatcher = new CurrencyInputWatcher(this, currencySymbolStr, locale, maxDP, currencySymbolSuffix);
         addTextChangedListener(textWatcher);
 
-        // NUEVO: Inicializa detector para double-tap
+        // Inicializa detector para double-tap y long-press
         gestureDetector = new GestureDetector(mContext, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDoubleTap(MotionEvent e) {
-                String text = getText().toString();
-                if (text.startsWith(currencySymbolPrefix) && !text.equals(currencySymbolPrefix)) {
-                    int start = currencySymbolPrefix.length();
-                    int end = text.length();
-                    setSelection(start, end); // Selecciona solo dígitos
-                    return true;
-                }
-                return false;
+                selectNumericPart();  // Método helper común (ver abajo)
+                return true;
+            }
+
+            @Override
+            public void onLongPress(MotionEvent e) {
+                // Aplica selección numérica con delay para corregir handles del sistema
+                post(() -> selectNumericPart());
             }
         });
+        setCustomSelectionActionModeCallback(new CustomSelectionCallback());
+    }
+
+    private void selectNumericPart() {
+        String text = getText().toString();
+        int start, end;
+
+        if (currencySymbolSuffix) {
+            if (text.endsWith(currencySymbolStr) && !text.equals(currencySymbolStr)) {
+                start = 0;
+                end = text.length() - currencySymbolStr.length();
+            } else {
+                start = Math.max(0, text.length() - currencySymbolStr.length());
+                end = start;  // Cursor antes del sufijo si vacío
+            }
+        } else {
+            if (text.startsWith(currencySymbolStr) && !text.equals(currencySymbolStr)) {
+                start = currencySymbolStr.length();
+                end = text.length();
+            } else {
+                start = currencySymbolStr.length();
+                end = start;  // Cursor después del prefijo si vacío
+            }
+        }
+
+        if (start <= end && end <= text.length()) {
+            setSelection(start, end);
+        }
     }
 
     public void setLocale(Locale locale) {
@@ -113,9 +154,18 @@ public class CurrencyEditText extends AppCompatEditText {
         invalidateTextWatcher();
     }
 
-    public void setCurrencySymbol(String currencySymbol, boolean useCurrencySymbolAsHint) {
-        currencySymbolPrefix = currencySymbol + " ";
-        if (useCurrencySymbolAsHint) setHint(currencySymbolPrefix);
+    public void setCurrencySymbol(String currencySymbol) {
+        currencySymbolStr = currencySymbol.isEmpty() ? "" : (this.currencySymbolSuffix ? " " + currencySymbol : currencySymbol + " ");
+        invalidateTextWatcher();
+    }
+
+    public void setCurrencySymbolAsHint( boolean useCurrencySymbolAsHint ){
+        if (useCurrencySymbolAsHint) setHint(currencySymbolStr);
+        invalidateTextWatcher();
+    }
+
+    public void setCurrencySymbolSuffix(boolean isSuffix){
+        this.currencySymbolSuffix = isSuffix;
         invalidateTextWatcher();
     }
 
@@ -126,28 +176,151 @@ public class CurrencyEditText extends AppCompatEditText {
 
     private void invalidateTextWatcher() {
         removeTextChangedListener(textWatcher);
-        textWatcher = new CurrencyInputWatcher(this, currencySymbolPrefix, locale, maxDP);
+        textWatcher = new CurrencyInputWatcher(this, currencySymbolStr, locale, maxDP, currencySymbolSuffix);
         addTextChangedListener(textWatcher);
     }
 
     public double getNumericValue() {
-        return parseMoneyValueWithLocale(
-                locale,
-                getText().toString(),
+        return parseMoneyValueWithLocale(locale, getText().toString(),
                 textWatcher.decimalFormatSymbols.getGroupingSeparator() + "",
-                currencySymbolPrefix
-        ).doubleValue();
+                currencySymbolStr, currencySymbolSuffix).doubleValue();
     }
 
     public BigDecimal getNumericValueBigDecimal() {
-        return new BigDecimal(
-                parseMoneyValueWithLocale(
-                        locale,
-                        getText().toString(),
-                        textWatcher.decimalFormatSymbols.getGroupingSeparator() + "",
-                        currencySymbolPrefix
-                ).toString()
-        );
+        return parseMoneyValueWithLocale(locale, getText().toString(),
+                textWatcher.decimalFormatSymbols.getGroupingSeparator() + "",
+                currencySymbolStr, currencySymbolSuffix);
+    }
+
+    private class CustomSelectionCallback implements ActionMode.Callback {
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            menu.clear(); // Limpia cualquier cosa previa
+
+            mode.setTitle("Opciones de Monto");
+
+            // Ítems nativos con iconos en fila
+            menu.add(Menu.NONE, android.R.id.cut, 0, "Cortar")
+                    .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+
+            menu.add(Menu.NONE, android.R.id.copy, 1, "Copiar")
+                    .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+
+            menu.add(Menu.NONE, android.R.id.paste, 2, "Pegar")
+                    .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+
+            menu.add(Menu.NONE, android.R.id.selectAll, 3, "Seleccionar todo")
+                    .setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+
+            // Custom
+            MenuItem clearItem = menu.add(Menu.NONE, 1001, 4, "Limpiar a 0");
+            clearItem.setIcon(android.R.drawable.ic_menu_delete);
+            clearItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            int mCut = android.R.id.cut;
+            int mCopy = android.R.id.copy;
+            int mPaste = android.R.id.paste;
+            int mSelAll = android.R.id.selectAll;
+            int mClear = 1001;
+
+            // Remueve ítems no deseados del sistema
+            for (int i = menu.size() - 1; i >= 0; i--) {
+                MenuItem item = menu.getItem(i);
+                if (item.getItemId() != mCut && item.getItemId() != mCopy &&
+                        item.getItemId() != mPaste && item.getItemId() != mSelAll &&
+                        item.getItemId() != mClear) {
+                    menu.removeItem(item.getItemId());
+                    // Log para debug (remueve en producción)
+                    Log.d("CurrencyEditText", "Removido ítem no deseado: " + (item.getTitle() != null ? item.getTitle() : "Sin título"));
+                }
+            }
+
+            boolean hasText = !getText().toString().trim().isEmpty();
+            boolean hasSelection = getSelectionStart() != getSelectionEnd();
+
+            // NUEVO: Checks de null para robustez (opcional, pero seguro)
+            MenuItem cutItem = menu.findItem(mCut);
+            if (cutItem != null) cutItem.setEnabled(hasSelection);
+
+            MenuItem copyItem = menu.findItem(mCopy);
+            if (copyItem != null) copyItem.setEnabled(hasSelection);
+
+            MenuItem pasteItem = menu.findItem(mPaste);
+            if (pasteItem != null) pasteItem.setEnabled(hasSelection && clipboardHasText());
+
+            MenuItem selAllItem = menu.findItem(mSelAll);
+            if (selAllItem != null) selAllItem.setEnabled(!hasSelection);
+
+            MenuItem clearItem = menu.findItem(mClear);
+            if (clearItem != null) clearItem.setEnabled(hasText);
+
+            return true;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            int id = item.getItemId();
+
+            Basic.msg("ID = "+id,true);
+            if (id == 1001) {
+                setText("0");
+                mode.finish();
+                return true;
+            }
+
+            if (id == android.R.id.cut) {
+                ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                clipboard.setPrimaryClip(ClipData.newPlainText("monto", getSelectedText()));
+                deleteSelectedText();
+                mode.finish();
+                return true;
+            }
+
+            if (id == android.R.id.copy) {
+                ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                clipboard.setPrimaryClip(ClipData.newPlainText("monto", getSelectedText()));
+                mode.finish();
+                return true;
+            }
+
+            if (id == android.R.id.selectAll) {
+                selectAllText();
+                return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            // Nada especial, el sistema lo maneja
+        }
+
+        // Helpers para cortar/copiar/seleccionar
+        private CharSequence getSelectedText() {
+            return getText().subSequence(getSelectionStart(), getSelectionEnd());
+        }
+
+        private void deleteSelectedText() {
+            int start = getSelectionStart();
+            int end = getSelectionEnd();
+            getText().delete(start, end);
+        }
+
+        private void selectAllText() {
+            setSelection(0, getText().length());
+        }
+    }
+
+    private boolean clipboardHasText() {
+        ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        return clipboard != null && clipboard.hasPrimaryClip() && clipboard.getPrimaryClip().getItemCount() > 0;
     }
 
     @Override
@@ -163,18 +336,31 @@ public class CurrencyEditText extends AppCompatEditText {
         String currentText = getText().toString();
         if (focused) {
             if (currentText.isEmpty()) {
-                setText(currencySymbolPrefix);
+                setText(currencySymbolStr);
             }
-            // Auto-seleccionar todo el texto numérico (después del símbolo)
+            // Auto-seleccionar todo el texto numérico
             post(() -> {
-                String text = getText().toString(); // NUEVO: Obtén texto actual para verificación
-                if (text.startsWith(currencySymbolPrefix) && !text.equals(currencySymbolPrefix)) { // NUEVO: Asegura prefixed y no solo símbolo
-                    int start = currencySymbolPrefix.length();
-                    int end = text.length();
-                    setSelection(start, end); // Selecciona solo dígitos (sin if, ya que verificamos start < end implícitamente)
+                String text = getText().toString();
+                if (currencySymbolSuffix) {
+                    if (text.endsWith(currencySymbolStr) && !text.equals(currencySymbolStr)) {
+                        int start = 0;
+                        int end = text.length() - currencySymbolStr.length();
+                        setSelection(start, end);
+                    } else {
+                        Basic.msg(""+currencySymbolStr.length());
+                        // FIXED: Clampa end >= 0 para evitar IndexOutOfBounds
+                        int end = Math.max(0, (currencySymbolStr != null ? text.length() - currencySymbolStr.length() : 0));
+                        setSelection(end);  // Cursor al inicio (antes del sufijo si vacío)
+                    }
                 } else {
-                    int start = currencySymbolPrefix != null ? currencySymbolPrefix.length() : 0;
-                    setSelection(start); // Cursor después del símbolo si vacío o solo símbolo
+                    if (text.startsWith(currencySymbolStr) && !text.equals(currencySymbolStr)) {
+                        int start = currencySymbolStr.length();
+                        int end = text.length();
+                        setSelection(start, end);
+                    } else {
+                        int start = currencySymbolStr != null ? currencySymbolStr.length() : 0;
+                        setSelection(start);  // Cursor después del prefijo si vacío
+                    }
                 }
             });
 
@@ -192,7 +378,7 @@ public class CurrencyEditText extends AppCompatEditText {
             addViewsToHide(views);  // Tu método existente
 
         } else {
-            if (currentText.equals(currencySymbolPrefix)) {
+            if (currentText.equals(currencySymbolStr)) {
                 setText("");
             }
             // Ocultar teclado
@@ -218,30 +404,39 @@ public class CurrencyEditText extends AppCompatEditText {
 
     @Override
     public void onSelectionChanged(int selStart, int selEnd) {
-        if (currencySymbolPrefix == null){
+        if (currencySymbolStr == null || currencySymbolStr.isEmpty()) {
+            super.onSelectionChanged(selStart, selEnd);
             return;
         }
 
-        int textLength = getText().toString().length();  // NUEVO: Obtén longitud actual
-        int symbolLength = currencySymbolPrefix.length();
-        if (textLength >= symbolLength) {
-            // Ajusta para excluir símbolo
-            if (selStart < symbolLength) {
-                selStart = symbolLength;
+        String text = getText().toString();
+        int textLength = text.length();
+        int symbolLength = currencySymbolStr.length();
+
+        int newStart;
+        int newEnd;
+
+        if (currencySymbolSuffix) {
+            int limit = textLength - symbolLength;
+            if (limit < 0) {
+                super.onSelectionChanged(selStart, selEnd);
+                return;
             }
-            if (selEnd < symbolLength) {
-                selEnd = symbolLength;
+            newStart = Math.max(0, Math.min(selStart, limit));
+            newEnd = Math.max(0, Math.min(selEnd, limit));
+        } else {
+            if (textLength < symbolLength) {
+                super.onSelectionChanged(selStart, selEnd);
+                return;
             }
-            if (selStart > selEnd) {
-                selEnd = selStart;
-            }
-            // NUEVO: Clamp a rango válido [0, textLength] para evitar IndexOutOfBounds
-            selStart = Math.min(selStart, textLength);
-            selEnd = Math.min(selEnd, textLength);
-            setSelection(selStart, selEnd);
+            newStart = Math.max(symbolLength, selStart);
+            newEnd = Math.max(symbolLength, selEnd);
         }
-        else {
-            super.onSelectionChanged(selStart, selEnd);
+
+        if (newStart != selStart || newEnd != selEnd) {
+            setSelection(newStart, newEnd);
+        } else {
+            super.onSelectionChanged(newStart, newEnd);
         }
     }
 
@@ -258,31 +453,31 @@ public class CurrencyEditText extends AppCompatEditText {
         return super.onTouchEvent(event);
     }
 
-    private boolean isBackspaceHeld = false;  // NUEVO: Flag para estado de hold
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_DEL) {
-            if (event.getRepeatCount() == 0) {
-                // Inicio del long-press: Remueve watcher para permitir continua
-                removeTextChangedListener(textWatcher);
-                isBackspaceHeld = true;
-            }
-            // Delega a super para borrar (incluye repeats)
-            return super.onKeyDown(keyCode, event);
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_DEL && isBackspaceHeld) {
-            // Al soltar: Reagrega watcher para formatear el resultado final
-            addTextChangedListener(textWatcher);
-            isBackspaceHeld = false;
-            return true;
-        }
-        return super.onKeyUp(keyCode, event);
-    }
+//    private boolean isBackspaceHeld = false;  // NUEVO: Flag para estado de hold
+//    @Override
+//    public boolean onKeyDown(int keyCode, KeyEvent event) {
+//        if (keyCode == KeyEvent.KEYCODE_DEL) {
+//            if (event.getRepeatCount() == 0) {
+//                // Inicio del long-press: Remueve watcher para permitir continua
+//                removeTextChangedListener(textWatcher);
+//                isBackspaceHeld = true;
+//            }
+//            // Delega a super para borrar (incluye repeats)
+//            return super.onKeyDown(keyCode, event);
+//        }
+//        return super.onKeyDown(keyCode, event);
+//    }
+//
+//    @Override
+//    public boolean onKeyUp(int keyCode, KeyEvent event) {
+//        if (keyCode == KeyEvent.KEYCODE_DEL && isBackspaceHeld) {
+//            // Al soltar: Reagrega watcher para formatear el resultado final
+//            addTextChangedListener(textWatcher);
+//            isBackspaceHeld = false;
+//            return true;
+//        }
+//        return super.onKeyUp(keyCode, event);
+//    }
 
     private List<View> viewsToHide = new ArrayList<>();  // Lista de views a ocultar al abrir teclado
     private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;  // Listener para detectar teclado
@@ -350,14 +545,24 @@ public class CurrencyEditText extends AppCompatEditText {
         }
     }
 
-    private static BigDecimal parseMoneyValueWithLocale(Locale locale, String value, String groupingSeparator, String currencySymbolPrefix) {
+    private static BigDecimal parseMoneyValueWithLocale(Locale locale, String value, String groupingSeparator, String currencySymbol, boolean isSuffix) {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(locale);
         symbols.setGroupingSeparator(groupingSeparator.charAt(0));
         DecimalFormat format = new DecimalFormat();
         format.setDecimalFormatSymbols(symbols);
         format.setParseBigDecimal(true);
+
+        // Remueve símbolo según posición
+        if (isSuffix && value.endsWith(currencySymbol)) {
+            value = value.substring(0, value.length() - currencySymbol.length()).trim();
+        } else {
+            value = value.replace(currencySymbol, "").trim();
+        }
+        // Remueve grouping separators
+        value = value.replace(groupingSeparator, "");
+
         try {
-            return (BigDecimal) format.parse(value.replace(currencySymbolPrefix, ""));
+            return (BigDecimal) format.parse(value);
         } catch (Exception e) {
             return BigDecimal.ZERO;
         }

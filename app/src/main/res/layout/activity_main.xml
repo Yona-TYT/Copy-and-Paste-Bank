@@ -150,6 +150,7 @@
         app:layout_constraintStart_toStartOf="@+id/guideline2"
         app:layout_constraintTop_toBottomOf="@+id/textV5"
         app:localeTag="ES"
+        app:currencySymbolSuffix="true"
         app:maxNumberOfDecimalDigits="2"
         tools:ignore="MissingConstraints" />
 
@@ -348,6 +349,8 @@
 
         app:localeTag="ES"
         app:maxNumberOfDecimalDigits="2"
+        app:currencySymbol="Bs"
+        app:currencySymbolSuffix="true"
         tools:ignore="MissingConstraints" />
 
     <TextView

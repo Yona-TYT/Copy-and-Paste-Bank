@@ -147,6 +147,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mSw1.setChecked(false);
 
+
         GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mInput1);
         try {
             GetDollar.urlRun();
@@ -323,6 +324,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         if (itemId == R.id.switch1) {
+            mInput2.setCurrencySymbol("");
+
             isConv = !isConv;
             if(GetDollar.getPrice(currSel1) <= 0){
                 isConv = false;
@@ -331,6 +334,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             }
             if(!isConv) {
+
                 mInput2.setText(formatNumber(mResList[4], false));   //Monto
 
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
@@ -347,6 +351,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Basic.msg("El monto esta Vacio!.");
                 }
                 else {
+
+                    mInput2.setCurrencySymbol("Bs");
+
                     float value;
                     try {
                         value = Basic.notFormatter(mResList[4]);

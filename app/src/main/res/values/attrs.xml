@@ -10,5 +10,6 @@
         <attr name="maxNumberOfDecimalDigits" format="integer"/>
         <attr name="viewsToHideIds" format="string" />
         <attr name="keepFocusOnKeyboardClose" format="boolean" />
+        <attr name="currencySymbolSuffix" format="boolean" />
     </declare-styleable>
 </resources>

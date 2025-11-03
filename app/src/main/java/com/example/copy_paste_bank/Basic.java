@@ -3,8 +3,12 @@ package com.example.copy_paste_bank;
 import static android.widget.GridLayout.spec;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Typeface;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
@@ -31,6 +35,8 @@ public class Basic {
     public static boolean isDow = true;
     public static boolean isUp = false;
 
+    private static String oldMsg = "";
+    private static long lastShowTime = 0;
 
     public Basic(Context mContex) {
         this.mContex = mContex;
@@ -134,30 +140,55 @@ public class Basic {
         return value.replaceAll("([;,\"<>]+)", "");
     }
 
-    public static void msg(String msg)
-    {
-        TextView text = new TextView(mContex);
-        // Se ajustan los parametros del Texto ----------------------------------
-        text.setText(msg);
-        text.setTypeface(Typeface.DEFAULT_BOLD);
-        text.setGravity(Gravity.CENTER);
-        text.setWidth(R.dimen.spinner_w1);
-        text.setMaxLines(1);
-        text.setTextColor(ContextCompat.getColor(text.getContext(), R.color.text_color1));
-        text.setBackgroundColor(ContextCompat.getColor(text.getContext(), R.color.text_background2));
-        text.setPadding(10,5,10,5);
-
-        CardView cardView = new CardView(mContex);
-        cardView.setLayoutParams(new GridLayout.LayoutParams(spec(140), spec(150)));
-        cardView.addView(text);
-        cardView.setRadius(10f);
-
-        Toast mToast = new Toast(mContex);
-        mToast.setView(cardView);
-        mToast.show();
+    public static void msg(String msg){
+        msgInternal(msg, false);
     }
-    public static void checkClt(){
 
+    public static void msg(String msg, boolean isClipboard){
+        msgInternal(msg, isClipboard);
+    }
+
+    public static void msgInternal(String msg, boolean isClipboard)
+    {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            long currentTime = System.currentTimeMillis();
+            long fiveSecondsAgo = currentTime - 3000;  // 5s en ms
+
+            if (oldMsg.equals(msg) && lastShowTime > fiveSecondsAgo) {
+                return;  // No mostrar
+            }
+            // Actualiza el mensaje anterior y el tiempo de muestra
+            oldMsg = msg;
+            lastShowTime = currentTime;
+
+            TextView text = new TextView(mContex);
+            // Se ajustan los parametros del Texto ----------------------------------
+            text.setText(msg);
+            text.setTypeface(Typeface.DEFAULT_BOLD);
+            text.setGravity(Gravity.CENTER);
+            text.setWidth(R.dimen.spinner_w1);
+            text.setMaxLines(1);
+            text.setTextColor(ContextCompat.getColor(text.getContext(), R.color.text_color1));
+            text.setBackgroundColor(ContextCompat.getColor(text.getContext(), R.color.text_background2));
+            text.setPadding(10, 5, 10, 5);
+
+            CardView cardView = new CardView(mContex);
+            cardView.setLayoutParams(new GridLayout.LayoutParams(spec(140), spec(150)));
+            cardView.addView(text);
+            cardView.setRadius(10f);
+
+            Toast mToast = new Toast(mContex);
+            mToast.setView(cardView);
+            mToast.setDuration(Toast.LENGTH_LONG);
+            mToast.show();
+
+            //Copiar al portapapeles
+            if(isClipboard){
+                ClipboardManager clipboard = (ClipboardManager) mContex.getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("Texto Extraído", msg);
+                clipboard.setPrimaryClip(clip);
+            }
+        });
     }
 
     public static int bitL(int val, int rota) {
