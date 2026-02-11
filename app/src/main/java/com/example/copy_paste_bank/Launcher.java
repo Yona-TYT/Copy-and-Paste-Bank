@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.ext.SdkExtensions;
 import android.provider.MediaStore;
@@ -12,6 +13,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 
+import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -35,7 +37,7 @@ import java.util.List;
 
 import android.Manifest;
 
-public class Launcher implements DefaultLifecycleObserver {  // Removí extends AppCompatActivity, ya que es un observer
+public class Launcher implements DefaultLifecycleObserver {
 
     private static final String TAG = "Launcher";
 
@@ -47,8 +49,11 @@ public class Launcher implements DefaultLifecycleObserver {  // Removí extends 
 
     private ActivityResultLauncher<String> cameraPermissionLauncher;
     private ActivityResultLauncher<Intent> takePictureLauncher;
-    private ActivityResultLauncher<Intent> multiplePickerLauncher;  // Nuevo: para múltiples imágenes
+    private ActivityResultLauncher<Intent> multiplePickerLauncher;
+    private ActivityResultLauncher<Intent> proCropLauncher;
+
     private Uri captureImageUri;
+    private ComponentActivity  activity;
 
     public Launcher(ActivityResultRegistry registry, Context context, OnCapture onCapture) {
         this.registry = registry;
@@ -58,6 +63,7 @@ public class Launcher implements DefaultLifecycleObserver {  // Removí extends 
 
     @Override
     public void onCreate(@NonNull LifecycleOwner owner) {
+        this.activity = (ComponentActivity) owner;
         cameraPermissionLauncher = registry.register(
                 "keyCameraPermission_" + uniqueKey,
                 owner,
@@ -75,18 +81,92 @@ public class Launcher implements DefaultLifecycleObserver {  // Removí extends 
                 }
         );
 
+        proCropLauncher = registry.register("keyProCrop_" + uniqueKey, owner,
+                new ActivityResultContracts.StartActivityForResult(), result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri croppedUri = result.getData().getData(); // ← Este Uri SÍ tiene permiso
+                        onCapture.invoke(Collections.singletonList(croppedUri));
+                    } else {
+                        onCapture.invoke(Collections.singletonList(captureImageUri));
+                    }
+                });
+
+        proCropLauncher = registry.register("keyProCrop_" + uniqueKey, owner,
+                new ActivityResultContracts.StartActivityForResult(), result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri croppedUri = result.getData().getData();
+                        onCapture.invoke(Collections.singletonList(croppedUri));
+                    } else {
+                        // Si el usuario pulsó "Retomar" (RESULT_CANCELED), volvemos a la cámara
+                        try {
+                            launchCamera(); // ← vuelve a abrir la cámara para nueva foto
+                        } catch (IOException e) {
+                            Log.e(TAG, "Error al relanzar cámara", e);
+                            onCapture.invoke(Collections.emptyList());
+                        }
+                    }
+                });
+
+
+        // Callback del takePictureLauncher (adaptado para recibir el Uri de la foto capturada)
         takePictureLauncher = registry.register(
                 "keyCameraLauncher_" + uniqueKey,
                 owner,
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    if (result.getResultCode() == Activity.RESULT_OK && captureImageUri != null) {
-                        // Envía como lista de una sola imagen
-                        onCapture.invoke(Collections.singletonList(captureImageUri));
-                        Log.d(TAG, "Imagen de cámara capturada y enviada");
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri photoUri = result.getData().getData(); // ← Uri de la foto capturada (con permiso)
+
+                        // Preparamos el archivo para el recorte
+                        File croppedFile = new File(activity.getCacheDir(), "cropped_final.jpg");
+
+                        // Lanzamos el recorte
+                        Intent cropIntent = ProCropActivity.buildIntent(activity, photoUri, croppedFile.getAbsolutePath());
+
+                        if (proCropLauncher != null) {
+                            proCropLauncher.launch(cropIntent);
+                        } else {
+                            Log.e(TAG, "proCropLauncher no inicializado");
+                            onCapture.invoke(Collections.singletonList(photoUri));
+                        }
+                    } else {
+                        onCapture.invoke(Collections.emptyList());
                     }
                 }
         );
+
+//        takePictureLauncher = registry.register(
+//                "keyCameraLauncher_" + uniqueKey,
+//                owner,
+//                new ActivityResultContracts.StartActivityForResult(),
+//                result -> {
+//                    // Si la captura de la cámara fue exitosa (RESULT_OK) Y tenemos la URI donde se guardó la imagen original
+//                    if (result.getResultCode() == Activity.RESULT_OK && captureImageUri != null) {
+//
+//                        // Preparamos la ruta de salida para la imagen recortada final
+//                        File croppedFile = new File(activity.getCacheDir(), "cropped_final.jpg");
+//
+//                        // 1. Construimos el Intent usando el método estático corregido
+//                        Intent cropIntent = ProCropActivity.buildIntent(
+//                                activity,
+//                                captureImageUri,
+//                                croppedFile.getAbsolutePath()
+//                        );
+//
+//                        // 2. Ejecutamos el siguiente lanzador
+//                        if (proCropLauncher != null) {
+//                            proCropLauncher.launch(cropIntent);
+//                        } else {
+//                            // Manejar error si proCropLauncher no está listo
+//                            Log.e("MiApp", "proCropLauncher no inicializado al tomar foto.");
+//                            onCapture.invoke(Collections.singletonList(captureImageUri)); // Fallback
+//                        }
+//                    } else {
+//                        // Si el usuario canceló la cámara o hubo un error, se maneja aquí.
+//                        onCapture.invoke(Collections.emptyList());
+//                    }
+//                }
+//        );
 
         // Nuevo: Launcher para picker múltiple
         multiplePickerLauncher = registry.register(
@@ -165,16 +245,27 @@ public class Launcher implements DefaultLifecycleObserver {  // Removí extends 
     }
 
     private void dispatchTakePictureIntent() throws IOException {
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        File file = File.createTempFile("IMG_", ".jpg", context.getCacheDir());
-        captureImageUri = FileProvider.getUriForFile(
-                context,
-                context.getPackageName() + ".fileprovider",
-                file
-        );
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, captureImageUri);
+        // Creamos el archivo donde la cámara personalizada guardará la foto
+        File photoFile = File.createTempFile("IMG_", ".jpg", context.getCacheDir());
+        captureImageUri = FileProvider.getUriForFile(context, context.getPackageName() + ".fileprovider", photoFile);
+
+        // Lanzamos tu cámara personalizada
+        Intent cameraIntent = new Intent(activity, CustomCameraActivity.class);
+        cameraIntent.putExtra("output_path", photoFile.getAbsolutePath());
         takePictureLauncher.launch(cameraIntent);
     }
+
+//    private void dispatchTakePictureIntent() throws IOException {
+//        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        File file = File.createTempFile("IMG_", ".jpg", context.getCacheDir());
+//        captureImageUri = FileProvider.getUriForFile(
+//                context,
+//                context.getPackageName() + ".fileprovider",
+//                file
+//        );
+//        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, captureImageUri);
+//        takePictureLauncher.launch(cameraIntent);
+//    }
 
     /**
      * Lanza picker para múltiples imágenes (unificado).

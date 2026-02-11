@@ -192,6 +192,10 @@ public class CurrencyEditText extends AppCompatEditText {
                 currencySymbolStr, currencySymbolSuffix);
     }
 
+    public String getCurrencySymbol() {
+        return currencySymbolStr;
+    }
+
     private class CustomSelectionCallback implements ActionMode.Callback {
 
         @Override
@@ -267,7 +271,6 @@ public class CurrencyEditText extends AppCompatEditText {
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             int id = item.getItemId();
 
-            Basic.msg("ID = "+id,true);
             if (id == 1001) {
                 setText("0");
                 mode.finish();

@@ -137,6 +137,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mButt2.setOnLongClickListener(this);
         mButt4.setOnLongClickListener(this);
+        mButt5.setOnLongClickListener(this);
+        mButt6.setOnLongClickListener(this);
         mButt8.setOnLongClickListener(this);
 
         mInput2.setOnClickListener(this);
@@ -354,14 +356,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     mInput2.setCurrencySymbol("Bs");
 
-                    float value;
+                    double value;
                     try {
                         value = Basic.notFormatter(mResList[4]);
                     } catch (ParseException e) {
                         throw new RuntimeException(e);
                     }
                     value *= GetDollar.getPrice(currSel1);
-                    mConver = Basic.setFormatter(Float.toString(value));
+                    mConver = Basic.setFormatter(Double.toString(value));
                     mInput2.setText(mConver);   //Monto
 
                     ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mConver);
@@ -503,29 +505,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-//        //Codigo Banco
-//        if (itemId == R.id.butt5) {
-//            if(mResList[3].isEmpty()){
-//                Basic.msg("Este Campo esta VACIO!:");
-//            }
-//            else {
-//                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[3]);
-//                clipboard.setPrimaryClip(clipData);
-//                Basic.msg("Codg. Banco Copiado al portapapeles.");
-//            }
-//        }
+        //Codigo Banco
+        if (itemId == R.id.butt5) {
+            if(mResList[3].isEmpty()){
+                Basic.msg("Este Campo esta VACIO!:");
+            }
+            else {
+                ClipData clipData = ClipData.newPlainText("Clip Data", (mResList[3]+" "+mResList[5]));
+                clipboard.setPrimaryClip(clipData);
+                Basic.msg("Nombre y Codg. Banco Copiado al portapapeles.");
+            }
+        }
 
-//        //Monto
-//        if (itemId == R.id.butt6) {
-//            if(getInputValue().isEmpty()){
-//                Basic.msg("Este Campo esta VACIO!:");
-//            }
-//            else {
-//                ClipData clipData = ClipData.newPlainText("Clip Data", (isConv? mConver : getInputValue()));
-//                clipboard.setPrimaryClip(clipData);
-//                Basic.msg("Monto Copiado al portapapeles.");
-//            }
-//        }
+        //Monto
+        if (itemId == R.id.butt6) {
+            if(getInputValue().isEmpty()){
+                Basic.msg("Este Campo esta VACIO!:");
+            }
+            else {
+                ClipData clipData = ClipData.newPlainText("Clip Data", (isConv? (mConver+mInput2.getCurrencySymbol()): getInputValue()));
+                clipboard.setPrimaryClip(clipData);
+                Basic.msg("Monto y Simbolo Copiado al portapapeles.");
+            }
+        }
 
         //Debug
         if (itemId == R.id.butt8) {
@@ -577,7 +579,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
     public String formatNumber(String str, boolean id) {
         if(str.isEmpty()){
-            return "";
+            return id ? "" : "0,00";
         }
         String type = "";
 

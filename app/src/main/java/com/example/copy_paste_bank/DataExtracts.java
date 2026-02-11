@@ -58,21 +58,20 @@ public class DataExtracts {
 
     public static void startinProcess(String clipText){
         //--------------------------------------
-
         //Elimina formatos de fechas
+        clipText = clipText.replaceAll("(?:\\s|^)(\\[\\d{1,2}/\\d{1,2}/\\d{2}\\s\\d{1,2}:\\d{1,2}])(?:\\s|$)", "");
+
         clipText = clipText.replaceAll("(\\d{2})[\\-/:]\\d{2}[\\-/:]\\d{2,4}", "");
         clipText = clipText.replaceAll("(\\d{1,2})(:)(\\d{1,2})(:)(\\d{1,2})(pm|am|p\\.m\\.|a\\.m\\.|p\\.\\sm\\.)", "");
         clipText = clipText.replaceAll("(\\d{1,2})(:)(\\d{1,2})(\\s)(pm|am|p\\.m\\.|a\\.m\\.|p\\.\\sm\\.)", "");
 
         //Elimina formatos no utiles
-        clipText = clipText.replaceAll("(\\d{1,2})(/)(\\d{1,2})", "");
-
-
+        clipText = clipText.replaceAll("(?<!\\d)(\\d{1,2})/(\\d{1,2})(?!\\d)", "");
 
         clipText = clipText.replaceAll("\\$", "bs");
 
-
         //mDebug[0] = clipText;
+
 
         clipText = processString(clipText);
 
@@ -230,13 +229,13 @@ public class DataExtracts {
         //mDebug[0] = rawTx;
 
         //Espacio entre numeros de telefono -----------------------------
-        patt = Pattern.compile("((^|[\\s_])(\\d{4})([\\s\\-])([\\d\\s]{7,9}([\\s_]|$)))");
+        patt = Pattern.compile("((^|[\\s_])(\\d{4})([\\s\\-/])([\\d\\s]{7,9}([\\s_]|$)))");
         m = patt.matcher(rawTx);
         if (m.find()) {
             String gr = m.group(1);
             assert gr != null;
             //Basic.msg("-> "+gr);
-            String grCopy = gr.replaceAll("[\\s_\\-]+", "");
+            String grCopy = gr.replaceAll("[\\s_\\-/]+", "");
             for (String newTx : mAreaList) {
                 //Basic.msg("-> "+grCopy);
                 if (grCopy.startsWith(newTx) && grCopy.length()==11) {

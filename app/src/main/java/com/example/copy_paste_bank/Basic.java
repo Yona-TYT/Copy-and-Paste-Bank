@@ -32,9 +32,6 @@ import java.util.Objects;
 
 public class Basic {
     private static Context mContex;
-    public static boolean isDow = true;
-    public static boolean isUp = false;
-
     private static String oldMsg = "";
     private static long lastShowTime = 0;
 
@@ -52,81 +49,29 @@ public class Basic {
         return getPixelSiz(id) / scaledDensity;
     }
 
-    public static void hideKeyboard(Activity activity) {
-        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
-        //Find the currently focused view, so we can grab the correct window token from it.
-        View view = activity.getCurrentFocus();
-        //If no view currently has focus, create a new one, just so we can grab a window token from it
-        if (view == null) {
-            view = new View(activity);
-        }
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
-
-    public void setAllfocusEvent(View elm, List<EditText> mInputList) {
-        for (int i = 0; i < mInputList.size(); i++) {
-            mInputList.get(i).setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View view, boolean b) {
-                    //Toast.makeText(mContext, "Siz is "+b, Toast.LENGTH_LONG).show();
-                    if (b) {
-                        elm.setVisibility(View.INVISIBLE);
-                    } else {
-                        elm.setVisibility(View.VISIBLE);
-                    }
-                }
-            });
-        }
-    }
-
-    public static Float parseFloat(String value){
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setDecimalSeparator('.');
-        DecimalFormat format = new DecimalFormat("0.##");
-        format.setDecimalFormatSymbols(symbols);
-
-        try {
-            return format.parse(value).floatValue();
-        }
-        catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return (float)0.00;
-    }
-
     public static String setFormatter(String value){
         value = value.replaceAll("([^\\d.,-])","");
         if (value.isEmpty()){
-            value = "0";
+            value = "0,00";
         }
+        return setFormatter(Double.parseDouble(value));
+    }
+    public static String setFormatter(Double value){
         NumberFormat nf = NumberFormat.getNumberInstance(Locale.forLanguageTag("ES"));
         DecimalFormat formatter = (DecimalFormat) nf;
         formatter.applyPattern("###,##0.00");
-        return formatter.format(Float.parseFloat(value));
+        return formatter.format(value);
     }
 
-    public static Float notFormatter(String value) throws ParseException {
+    public static Double notFormatter(String value) throws ParseException {
         value = value.replaceAll("([^\\d.,-])","");
         if (value.isEmpty()){
-            value = "0";
+            value = "0,00";
         }
         NumberFormat nf = NumberFormat.getNumberInstance(Locale.forLanguageTag("ES"));
         DecimalFormat formatter = (DecimalFormat) nf;
         formatter.applyPattern("###,##0.00");
-        return Objects.requireNonNull(formatter.parse(value)).floatValue();
-    }
-
-    public static Float floatFormat(String value) {
-        String mValue = value.replaceAll("([^.\\d])", "");
-        mValue = mValue.replaceAll("^.$", "0.00");
-
-        return mValue.isEmpty() ? (float)0 : Float.parseFloat(mValue);
-    }
-
-    public static String setMask(String value, String sing) {
-        value = setFormatter(value);
-
-        return value;
+        return Objects.requireNonNull(formatter.parse(value)).doubleValue();
     }
 
     public static String nameProcessor(String value){
@@ -189,67 +134,6 @@ public class Basic {
                 clipboard.setPrimaryClip(clip);
             }
         });
-    }
-
-    public static int bitL(int val, int rota) {
-        return val << rota;
-    }
-
-    public static int bitR(int val, int rota) {
-        return (val >> rota) & 1;
-    }
-
-    public static int toHex(String value) {
-        return Integer.decode(value);
-    }
-
-    public static List<Integer> getBits(int n) {
-        List<Integer> list = new ArrayList<>();
-        while (true) {
-            if(n < 32){
-                list.add(bitL(0x1, n));
-                break;
-            }
-            else{
-                list.add(0);
-                n -= 32;
-            }
-        }
-        return list;
-    }
-
-    public static List<Integer> getBits(String text) {
-        String[] sList = text.split("'");
-        int n = 0;
-        List<Integer> list = new ArrayList<>();
-        for (String val: sList){
-            list.add(Integer.decode(val));
-        }
-        return list;
-    }
-
-    public static String saveBits(List<Integer> list) {
-        String text = "";
-        for (Integer val: list){
-            text = String.format("%x",val);
-            if(!text.startsWith("0x")){
-                text = "0x"+text;
-            }
-            //msg(text);
-        }
-        return text;
-    }
-    public static String saveNewBit(int r){
-        String bit = "";
-        for(int i = 0 ; i < r; i += 32) {
-            if(r < 32) {
-                bit = String.format("0x%x", Basic.bitL(0x1, r))+"'";
-            }
-            else{
-                r -= 32;
-            }
-        }
-        return bit;
     }
 
     public static String parseMoneyValue(String value, String groupingSeparator, String currencySymbol) {

@@ -9,6 +9,114 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/textV"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/txview_h1"
+        android:layout_marginTop="15dp"
+        android:padding="2dp"
+        android:text="Seleccione Tasa:"
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/buttRe"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/button_h1"
+        android:padding="2dp"
+        android:text="Recargar"
+
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintStart_toEndOf="@+id/spin1"
+        app:layout_constraintTop_toBottomOf="@+id/textV" />
+
+    <Spinner
+        android:id="@+id/spin1"
+        android:layout_width="@dimen/spinner_w1"
+        android:layout_height="@dimen/spinner_h1"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/textV" />
+
+    <TextView
+        android:id="@+id/textV1"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/txview_h1"
+        android:layout_marginTop="25dp"
+        android:padding="2dp"
+        android:text="Tel + Cod. Area"
+        android:textSize="@dimen/inner_text_1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/butt1"
+        tools:ignore="MissingConstraints" />
+
+
+    <com.example.copy_paste_bank.CurrencyEditText
+        android:id="@+id/input1"
+        android:layout_width="@dimen/txview_wm"
+        android:layout_height="@dimen/txview_h2"
+        android:ems="10"
+        android:focusable="true"
+        android:imeOptions="actionDone"
+        android:maxLength="20"
+        android:padding="6dp"
+
+        android:textSize="@dimen/inner_text_2"
+        android:visibility="invisible"
+
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/textV6"
+
+        app:localeTag="ES"
+        app:maxNumberOfDecimalDigits="2"
+        app:currencySymbol="Bs"
+        app:currencySymbolSuffix="true"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/dollarView"
+        android:layout_width="@dimen/txview_wm"
+        android:layout_height="@dimen/txview_h2"
+        android:layout_marginEnd="148dp"
+        android:padding="6dp"
+        android:text="0,00"
+        android:textSize="@dimen/inner_text_2"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/textV6" />
+
+    <Switch
+        android:id="@+id/switch1"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/txview_h2"
+
+        android:focusableInTouchMode="false"
+        android:text="Convertir"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintStart_toEndOf="@+id/dollarView"
+        app:layout_constraintTop_toBottomOf="@+id/textV6"
+        app:layout_constraintVertical_bias="0.0"
+        tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+    <ImageButton
+        android:id="@+id/buttimag1"
+        android:layout_width="@dimen/button_ws"
+        android:layout_height="@dimen/button_h1"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintStart_toEndOf="@+id/text1"
+        app:layout_constraintTop_toBottomOf="@+id/textV7"
+        app:srcCompat="@android:drawable/ic_menu_gallery" />
+
+    <TextView
         android:id="@+id/textV7"
         android:layout_width="@dimen/button_ws"
         android:layout_height="@dimen/txview_h1"
@@ -23,18 +131,6 @@
         app:layout_constraintStart_toEndOf="@+id/text1"
         app:layout_constraintTop_toBottomOf="@+id/switch1"
         tools:ignore="MissingConstraints" />
-
-    <Button
-        android:id="@+id/buttRe"
-        android:layout_width="@dimen/button_ws"
-        android:layout_height="@dimen/button_h1"
-        android:padding="2dp"
-        android:text="Recargar"
-
-        android:textSize="@dimen/inner_text_1"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintStart_toEndOf="@+id/spin1"
-        app:layout_constraintTop_toBottomOf="@+id/textV" />
 
     <TextView
         android:id="@+id/textV6"
@@ -51,19 +147,20 @@
         app:layout_constraintTop_toBottomOf="@+id/spin1"
         tools:ignore="MissingConstraints" />
 
-    <TextView
-        android:id="@+id/textV"
+    <Button
+        android:id="@+id/butt1"
         android:layout_width="@dimen/button_ws"
-        android:layout_height="@dimen/txview_h1"
-        android:layout_marginTop="15dp"
+        android:layout_height="@dimen/button_h1"
+        android:layout_marginTop="30dp"
+
+        android:focusable="true"
         android:padding="2dp"
-        android:text="Seleccione Tasa:"
+
+        android:text="Pegar"
         android:textSize="@dimen/inner_text_1"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintTop_toBottomOf="@+id/dollarView"
+        tools:ignore="SpUsage" />
 
     <TextView
         android:id="@+id/textV5"
@@ -106,20 +203,7 @@
         app:layout_constraintTop_toBottomOf="@+id/text1"
         tools:ignore="MissingConstraints" />
 
-    <TextView
-        android:id="@+id/text6"
-        android:layout_width="320dp"
-        android:layout_height="148dp"
-        android:hint="Test"
-        android:padding="2dp"
-        android:text=""
-        android:textSize="@dimen/txview_h1"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintHorizontal_bias="0.433"
-        app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/butt7" />
+
 
     <Button
         android:id="@+id/butt6"
@@ -141,10 +225,11 @@
         android:padding="2dp"
         android:ems="10"
         android:focusable="true"
-        android:hint="Monto en Bs"
+        android:hint="Monto"
         android:imeOptions="actionDone"
         android:maxLength="20"
         android:textSize="@dimen/inner_text_2"
+        android:text="0,00"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline2"
@@ -153,6 +238,21 @@
         app:currencySymbolSuffix="true"
         app:maxNumberOfDecimalDigits="2"
         tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/text6"
+        android:layout_width="320dp"
+        android:layout_height="148dp"
+        android:hint="Test"
+        android:padding="2dp"
+        android:text=""
+        android:textSize="@dimen/txview_h1"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintHorizontal_bias="0.433"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toBottomOf="@+id/butt7" />
 
     <Button
         android:id="@+id/butt5"
@@ -197,20 +297,7 @@
         app:layout_constraintStart_toEndOf="@+id/text1"
         app:layout_constraintTop_toBottomOf="@+id/butt1" />
 
-    <Button
-        android:id="@+id/butt1"
-        android:layout_width="@dimen/button_ws"
-        android:layout_height="@dimen/button_h1"
-        android:layout_marginTop="30dp"
 
-        android:focusable="true"
-        android:padding="2dp"
-
-        android:text="Pegar"
-        android:textSize="@dimen/inner_text_1"
-        app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/dollarView"
-        tools:ignore="SpUsage" />
 
     <TextView
         android:id="@+id/text1"
@@ -279,7 +366,6 @@
         android:id="@+id/butt8"
         android:layout_width="@dimen/button_ws"
         android:layout_height="@dimen/button_h1"
-        android:layout_marginTop="20dp"
 
 
         android:padding="2dp"
@@ -291,6 +377,7 @@
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.441"
         app:layout_constraintStart_toEndOf="@+id/input2"
+        app:layout_constraintTop_toTopOf="@+id/butt7"
         app:layout_constraintVertical_bias="0.0"
         tools:ignore="SpUsage" />
 
@@ -308,86 +395,6 @@
         android:orientation="vertical"
         app:layout_constraintGuide_begin="30dp" />
 
-    <TextView
-        android:id="@+id/textV1"
-        android:layout_width="@dimen/button_ws"
-        android:layout_height="@dimen/txview_h1"
-        android:layout_marginTop="25dp"
-        android:padding="2dp"
-        android:text="Tel + Cod. Area"
-        android:textSize="@dimen/inner_text_1"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/butt1"
-        tools:ignore="MissingConstraints" />
-
-    <Spinner
-        android:id="@+id/spin1"
-        android:layout_width="@dimen/spinner_w1"
-        android:layout_height="@dimen/spinner_h1"
-        app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/textV" />
-
-    <com.example.copy_paste_bank.CurrencyEditText
-        android:id="@+id/input1"
-        android:layout_width="@dimen/txview_wm"
-        android:layout_height="@dimen/txview_h2"
-        android:ems="10"
-        android:focusable="true"
-        android:imeOptions="actionDone"
-        android:maxLength="20"
-        android:padding="6dp"
-
-        android:textSize="@dimen/inner_text_2"
-        android:visibility="invisible"
-
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/textV6"
-
-        app:localeTag="ES"
-        app:maxNumberOfDecimalDigits="2"
-        app:currencySymbol="Bs"
-        app:currencySymbolSuffix="true"
-        tools:ignore="MissingConstraints" />
-
-    <TextView
-        android:id="@+id/dollarView"
-        android:layout_width="@dimen/txview_wm"
-        android:layout_height="@dimen/txview_h2"
-        android:layout_marginEnd="148dp"
-        android:padding="6dp"
-        android:text="0"
-        android:textSize="@dimen/inner_text_2"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/textV6" />
-
-    <Switch
-        android:id="@+id/switch1"
-        android:layout_width="@dimen/button_ws"
-        android:layout_height="@dimen/txview_h2"
-
-        android:focusableInTouchMode="false"
-        android:text="Convertir"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintStart_toEndOf="@+id/dollarView"
-        app:layout_constraintTop_toBottomOf="@+id/textV6"
-        app:layout_constraintVertical_bias="0.0"
-        tools:ignore="UseSwitchCompatOrMaterialXml" />
-
-    <ImageButton
-        android:id="@+id/buttimag1"
-        android:layout_width="@dimen/button_ws"
-        android:layout_height="@dimen/button_h1"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintStart_toEndOf="@+id/text1"
-        app:layout_constraintTop_toBottomOf="@+id/textV7"
-        app:srcCompat="@android:drawable/ic_menu_gallery" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
