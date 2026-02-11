@@ -26,4 +26,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Copy and Paste Bank"
 include ':app'
-include ':ucrop'
