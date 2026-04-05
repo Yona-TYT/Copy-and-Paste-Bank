@@ -64,7 +64,7 @@
         android:focusable="true"
         android:imeOptions="actionDone"
         android:maxLength="20"
-        android:padding="6dp"
+        android:padding="8dp"
 
         android:textSize="@dimen/inner_text_2"
         android:visibility="invisible"
@@ -221,8 +221,8 @@
     <com.example.copy_paste_bank.CurrencyEditText
         android:id="@+id/input2"
         android:layout_width="@dimen/txview_wm2"
-        android:layout_height="@dimen/input_h1"
-        android:padding="2dp"
+        android:layout_height="@dimen/txview_h2"
+        android:padding="8dp"
         android:ems="10"
         android:focusable="true"
         android:hint="Monto"

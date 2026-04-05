@@ -12,10 +12,18 @@ android {
         //noinspection OldTargetApi
         targetSdk 34
         versionCode 1
-        versionName "1.0"
+
+        // =============================================
+        // Versión automática basada en fecha
+        // =============================================
+        def date = new Date()
+
+        // versionName: Formato visible (año.mes.día)
+        versionName = date.format('yyyy.MM.dd')
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
 
     buildTypes {
         release {
@@ -23,6 +31,20 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    // =============================================
+    // NOMBRE PERSONALIZADO DEL APK (AQUÍ VA)
+    // =============================================
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def date = new Date()
+            def version = date.format('yyyy.MM.dd')
+
+            // Nombre final del APK
+            output.outputFileName = "CopyPasteBank-V${version}.apk"
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17

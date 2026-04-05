@@ -31,7 +31,7 @@ public class GetDollar {
     private static Spinner mSpinner;
     private static TextView mTextView;
 
-    public static List<Float> mDollar = Arrays.asList((float)0, (float)0, (float)0, (float)0);
+    public static List<Double> mDollar = Arrays.asList((double)0, (double)0, (double)0, (double)0);
     public static List<String> mDate = Arrays.asList("", "", "", "");
 
     private static List<String> mUrlA = Arrays.asList("https://pydolarve.org/api/v1/dollar?page=bcv", "https://pydolarve.org/api/v1/dollar?page=criptodolar", "https://pydolarve.org/api/v1/dollar?page=enparalelovzla", "");
@@ -69,7 +69,7 @@ public class GetDollar {
         arrayMap.put(mIds.get(1), buildList1);
 
     }
-    public static float getPrice(int idx){
+    public static double getPrice(int idx){
         return GetDollar.mDollar.get(idx);
     }
 
@@ -156,7 +156,7 @@ public class GetDollar {
                                 String mObjB = mKeysB.next();
                                 if (mObjB.equals(mkeyA.get(idx))) {
                                     String price = newJson.getJSONObject(mObjB).get("price").toString();
-                                    GetDollar.mDollar.set(idx, Float.parseFloat(price));
+                                    GetDollar.mDollar.set(idx, Double.parseDouble(price));
 
                                     GetDollar.mDate.set(idx, newJson.getJSONObject(mObjB).get("last_update").toString());
                                     //Basic.msg("--- " + newJson.getJSONObject(mObjB).get("price"));
@@ -173,7 +173,7 @@ public class GetDollar {
                             if (mObjA.equals(i.get(2).get(0))) {
                                 String price = json.get(i.get(2).get(0)).toString();
                                 Log.d("PhotoPicker", " --------------Aqui Hay URL?------------------------: " + mObjA+" - "+price);
-                                GetDollar.mDollar.set(idx, Float.parseFloat(price));
+                                GetDollar.mDollar.set(idx, Double.parseDouble(price));
                             }
                             if (mObjA.equals(i.get(2).get(1))) {
                                 String date = json.get(i.get(2).get(1)).toString();
@@ -191,6 +191,9 @@ public class GetDollar {
                     @SuppressLint("SetTextI18n")
                     @Override
                     public void run() {
+                        GlobalData glData = GlobalData.getInstance(AppContextProvider.getAppContext());
+                        glData.setTasaDolar(GetDollar.mDollar.get(0));
+
                         if(idx == (mUrlA.size()-1)) {
                             mTextView.setText(Basic.setFormatter(GetDollar.mDollar.get(idx).toString()) + " Bs");
                         }

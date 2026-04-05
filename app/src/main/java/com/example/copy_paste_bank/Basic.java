@@ -7,6 +7,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -142,5 +143,43 @@ public class Basic {
 
     public static boolean isLollipopAndAbove() {
         return true;
+    }
+
+    /**
+     * Configura un EditText (o CurrencyEditText) en modo solo lectura
+     * @param editText El EditText a configurar
+     * @param readOnly true = solo lectura, false = editable
+     */
+    public static void setReadOnly(EditText editText, boolean readOnly) {
+        if (editText == null) return;
+
+        // Configuración de interactividad
+        editText.setFocusable(!readOnly);
+        editText.setFocusableInTouchMode(!readOnly);
+        editText.setCursorVisible(!readOnly);
+        editText.setClickable(!readOnly);
+        editText.setEnabled(!readOnly);
+
+        if (readOnly) {
+            // Guardamos el fondo original solo la primera vez
+            if (editText.getTag() == null) {
+                editText.setTag(editText.getBackground());   // Guardamos en el Tag
+            }
+            editText.setBackground(null);                    // Modo solo lectura limpio
+        } else {
+            // Restauramos el fondo original
+            Drawable originalBackground = (Drawable) editText.getTag();
+
+            if (originalBackground != null) {
+                editText.setBackground(originalBackground);
+            } else {
+                // Fallback seguro: restaurar fondo del tema
+                editText.setBackgroundTintList(null);
+                if (editText.getBackground() != null) {
+                    editText.getBackground().clearColorFilter();
+                }
+            }
+        }
+
     }
 }

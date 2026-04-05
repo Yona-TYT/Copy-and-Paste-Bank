@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
+
+
+
+    <!-- Seleccione Tasa -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/textV1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Seleccione Tasa:"
+            android:textSize="@dimen/inner_text_1" />
+
+        <Spinner
+            android:id="@+id/spin1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp" />
+
+        <Button
+            android:id="@+id/butt1"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_h1"
+            android:layout_marginStart="10dp"
+            android:text="Recargar"
+            android:textSize="@dimen/inner_text_1" />
+    </LinearLayout>
+
+    <!-- Precio Dolar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/textV2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Precio Dolar:"
+            android:textSize="@dimen/inner_text_1" />
+
+        <com.example.copy_paste_bank.CurrencyEditText
+            android:id="@+id/input1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:ems="10"
+            android:imeOptions="actionDone"
+            android:maxLength="20"
+            android:padding="8dp"
+            android:textSize="@dimen/inner_text_2"
+            app:currencySymbol="Bs"
+            app:currencySymbolSuffix="true"
+            app:localeTag="ES"
+            app:maxNumberOfDecimalDigits="2" />
+    </LinearLayout>
+
+    <!-- Selector de 3 pestañas -->
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggleGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:padding="4dp"
+        app:selectionRequired="true"
+        app:singleSelection="true">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_bolivares"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Bolívares" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_dolares"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Dólares" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_tasa"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Tasa" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <!-- Contenido dinámico -->
+    <FrameLayout
+        android:id="@+id/content_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp">
+        <Spinner
+            android:id="@+id/spin2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="12dp" />
+        <Button
+            android:id="@+id/butt2"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_h1"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="50dp"
+            android:layout_marginStart="10dp"
+
+            android:minWidth="200dp"
+
+            android:focusableInTouchMode="false"
+            android:padding="1dp"
+            android:text="Obtener Monto"
+            android:textSize="@dimen/inner_text_1"
+            tools:ignore="SpUsage" />
+    </LinearLayout>
+
+
+</LinearLayout>

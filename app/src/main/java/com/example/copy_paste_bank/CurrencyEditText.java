@@ -47,6 +47,8 @@ public class CurrencyEditText extends AppCompatEditText {
 
         this.mContex = mContext;
 
+        setBackgroundResource(R.drawable.edittext_outline);
+
         boolean useCurrencySymbolAsHint = false;
         setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         setKeyListener(DigitsKeyListener.getInstance("0123456789.,"));
@@ -456,31 +458,6 @@ public class CurrencyEditText extends AppCompatEditText {
         return super.onTouchEvent(event);
     }
 
-//    private boolean isBackspaceHeld = false;  // NUEVO: Flag para estado de hold
-//    @Override
-//    public boolean onKeyDown(int keyCode, KeyEvent event) {
-//        if (keyCode == KeyEvent.KEYCODE_DEL) {
-//            if (event.getRepeatCount() == 0) {
-//                // Inicio del long-press: Remueve watcher para permitir continua
-//                removeTextChangedListener(textWatcher);
-//                isBackspaceHeld = true;
-//            }
-//            // Delega a super para borrar (incluye repeats)
-//            return super.onKeyDown(keyCode, event);
-//        }
-//        return super.onKeyDown(keyCode, event);
-//    }
-//
-//    @Override
-//    public boolean onKeyUp(int keyCode, KeyEvent event) {
-//        if (keyCode == KeyEvent.KEYCODE_DEL && isBackspaceHeld) {
-//            // Al soltar: Reagrega watcher para formatear el resultado final
-//            addTextChangedListener(textWatcher);
-//            isBackspaceHeld = false;
-//            return true;
-//        }
-//        return super.onKeyUp(keyCode, event);
-//    }
 
     private List<View> viewsToHide = new ArrayList<>();  // Lista de views a ocultar al abrir teclado
     private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;  // Listener para detectar teclado

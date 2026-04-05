@@ -3,12 +3,17 @@ package com.example.copy_paste_bank;
 import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.SpannableString;
 import android.text.TextWatcher;
+import android.text.style.ForegroundColorSpan;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,6 +27,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -33,7 +39,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -73,8 +78,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private CurrencyEditText mInput2;
 
     private Spinner mSpin1;
-    private List<String> mSpinL1 = Arrays.asList("BCV", "Promedio", "Paralelo", "Valor Personalizado");
-    private int currSel1 = 0;
+    //private List<String> mSpinL1 = Arrays.asList("BCV", "Promedio", "Paralelo", "Valor Personalizado");
+    //private int currSel1 = 0;
 
     private Switch mSw1;
     private boolean isConv = false;
@@ -89,6 +94,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Launcher mLaunch;
 
+    private GlobalData glData = GlobalData.getInstance(this);
+
     private ActivityMainBinding binding;
 
     @SuppressLint("MissingInflatedId")
@@ -101,14 +108,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Initialize ML Kit Text Recognizer
         recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
 
-        mButt1 = findViewById(R.id.butt1);
+        mButt1 = findViewById(R.id.buttRe);
         mButt2 = findViewById(R.id.butt2);
         mButt4 = findViewById(R.id.butt4);
         mButt5 = findViewById(R.id.butt5);
         mButt6 = findViewById(R.id.butt6);
         mButt7 = findViewById(R.id.butt7);
         mButt8 = findViewById(R.id.butt8);
-        mButt9 = findViewById(R.id.buttRe);
+        mButt9 = findViewById(R.id.butt1);
         mBtnImg1 = findViewById(R.id.buttimag1);
 
         mText1 = findViewById(R.id.text1);
@@ -180,15 +187,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mLaunch.attachToViewCam(mBtnImg1, true);
 
         //Para la lista de Monitores de dolar ------------------------------------------------------
-        SelecAdapter adapt1 = new SelecAdapter(this, mSpinL1);
+        SelecAdapter adapt1 = new SelecAdapter(this, glData.getSpinTasa());
         mSpin1.setAdapter(adapt1);
-        //mSpin1.setSelection(currSel1); //Set La Moneda como default
+        //int currSele = glData.getOptTasa();
+        //mSpin1.setSelection(currSele); //Set La Moneda como
         mSpin1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 if(i == GetDollar.mDollar.size()-1){
-                    GetDollar.mDollar.set(i, GetDollar.mDollar.get(currSel1));
+                    GetDollar.mDollar.set(i, GetDollar.mDollar.get(glData.getOptTasa()));
                     mInput1.setText(Basic.setFormatter(GetDollar.mDollar.get(i).toString()));
 
                     mInput1.setVisibility(View.VISIBLE);
@@ -201,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mInput1.setVisibility(View.INVISIBLE);
                     mDollView.setVisibility(View.VISIBLE);
                 }
-                currSel1 = i;
+                glData.setOptTasa(i);
                 mSw1.setChecked(false);
                 isConv = false;
                 mInput2.setText(formatNumber(mResList[4], false));   //Monto
@@ -209,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 View spinnerSel = mSpin1.getSelectedView();
                 if(spinnerSel != null) {
                     TextView mView = spinnerSel.findViewWithTag(i);
-                    mView.setText(mSpinL1.get(i));
+                    mView.setText(glData.getSpinTasa().get(i));
                     //Basic.msg(""+mSpin1.getSelectedView().findViewWithTag(i));
                 }
             }
@@ -228,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             @Override
             public void afterTextChanged(Editable editable) {
-                GetDollar.mDollar.set(GetDollar.mDollar.size()-1, (float)mInput1.getNumericValue());
+                GetDollar.mDollar.set(GetDollar.mDollar.size()-1, mInput1.getNumericValue());
             }
         });
 
@@ -259,11 +267,73 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+
+        refresh();
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refresh();
+    }
+
+    private void refresh() {
+        if(glData.getSendValue() > 0){
+
+            mResList[4] = Basic.setFormatter(Double.toString(glData.getSendValue()));
+            mInput2.setText(formatNumber(mResList[4], false));
+
+            isConv = false;
+            mSw1.setChecked(false);
+
+            glData.setSendValue(0.0);
+        }
+    }
+
+    @SuppressLint("ResourceType")
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.calc, menu);
+        getMenuInflater().inflate(R.menu.history, menu);
+
+        for(int i = 0; i < menu.size(); i++){
+            MenuItem item = menu.getItem(i);
+//            Drawable drawable = item.getIcon();
+
+//            if(drawable != null) {
+////                drawable.mutate();
+////                drawable.setColorFilter(ContextCompat.getColor(this, R.color.inner_button), PorterDuff.Mode.SRC_ATOP);
+//            }
+
+            SpannableString spannabl = new SpannableString(item.getTitle().toString());
+            spannabl.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.black)),0 ,spannabl.length(),0);
+            item.setTitle(spannabl);
+        }
+        //test.setBackgroundColor(ContextCompat.getColor(test.getContext(), R.color.purple_500));
+        return true;
+    }
+
+    @SuppressLint("SetWorldReadable")
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item){
+        int itemId = item.getItemId();
+
+        if (itemId == R.id.calc) {
+            Intent mIntent = new Intent(this, CalcActivity.class);
+            startActivity(mIntent);
+        }
+        if (itemId == R.id.history) {
+            //Intent mIntent = new Intent(this, CalcActivity.class);
+           //startActivity(mIntent);
+            Basic.msg("No implementado!");
+        }
+        return true;
     }
 
     private void processImage(Bitmap bitmap) {
@@ -318,6 +388,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Test
         //DataExtracts.mResList[4] = getInputValue();
 
+        //Boton que recarga el precio dolar
+        if (itemId == R.id.buttRe) {
+            GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mDollView);
+            try {
+                GetDollar.urlRun();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         if (itemId == R.id.input2) {
             if(isConv) {
                 isConv = false;
@@ -329,7 +409,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mInput2.setCurrencySymbol("");
 
             isConv = !isConv;
-            if(GetDollar.getPrice(currSel1) <= 0){
+            if(GetDollar.getPrice(glData.getOptTasa()) <= 0){
                 isConv = false;
                 mSw1.setChecked(false);
                 Basic.msg("Error obteniendo precio del DOLAR");
@@ -362,24 +442,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     } catch (ParseException e) {
                         throw new RuntimeException(e);
                     }
-                    value *= GetDollar.getPrice(currSel1);
+                    value *= GetDollar.getPrice(glData.getOptTasa());
                     mConver = Basic.setFormatter(Double.toString(value));
                     mInput2.setText(mConver);   //Monto
 
                     ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mConver);
                     clipboard.setPrimaryClip(clipData);
-                    Basic.msg("Monto convertido a: "+ mSpinL1.get(currSel1));
+                    Basic.msg("Monto convertido a: "+ glData.getSpinTasa().get(glData.getOptTasa()));
                 }
-            }
-        }
-
-        //Boton que recarga el precio dolar
-        if (itemId == R.id.buttRe) {
-            GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mDollView);
-            try {
-                GetDollar.urlRun();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
         }
 
