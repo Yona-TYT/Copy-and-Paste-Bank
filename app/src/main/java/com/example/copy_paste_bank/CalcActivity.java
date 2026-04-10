@@ -12,7 +12,6 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toolbar;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
@@ -47,9 +46,9 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
     private int currFrag = 0;
 
 
-    private CurrencyEditText mDollInput;
+    private CurrencyEditText mInput1;
 
-    private GlobalData glData = GlobalData.getInstance(this);
+    private GlobalData glData = GlobalData.getInstance(AppContextProvider.getAppContext());
 
     Fragment currFragment = new BolivaresFragment();
 
@@ -90,7 +89,7 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
             return insets;
         });
 
-        mDollInput =  findViewById(R.id.input1);
+        mInput1 =  findViewById(R.id.input1);
         mButt1 = findViewById(R.id.butt1);
         mButt2 = findViewById(R.id.butt2);
         mSpin1 = findViewById(R.id.spin1);
@@ -110,20 +109,24 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
             @SuppressLint("SetTextI18n")
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                glData.setOptTasa(i);
+
                 Double mDollar = GetDollar.mDollar.get(i);
                 glData.setTasaDolar(mDollar);
-                if(i == GetDollar.mDollar.size()-1){
-                    GetDollar.mDollar.set(i, GetDollar.mDollar.get(glData.getOptTasa()));
-                    mDollInput.setText(Basic.setFormatter(mDollar.toString()));
 
-                    Basic.setReadOnly(mDollInput, false);
+                int inputIdx = GetDollar.mDollar.size()-1;
+
+
+                if(i == inputIdx){
+                    if(mDollar > 0){
+                        mInput1.setText(Basic.setFormatter(mDollar.toString()));
+                    }
+                    Basic.setReadOnly(mInput1, false);
                 }
                 else {
-                    mDollInput.setText(Basic.setFormatter(mDollar.toString()));
-
-                    Basic.setReadOnly(mDollInput, true);
+                    mInput1.setText(Basic.setFormatter(mDollar.toString()));
+                    Basic.setReadOnly(mInput1, true);
                 }
-                glData.setOptTasa(i);
 
                 View spinnerSel = mSpin1.getSelectedView();
                 if(spinnerSel != null) {
@@ -141,7 +144,7 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        mDollInput.addTextChangedListener(new TextWatcher() {
+        mInput1.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             }
@@ -150,9 +153,13 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
             }
             @Override
             public void afterTextChanged(Editable editable) {
-                Double mDollar = mDollInput.getNumericValue();
+                Double mDollar = mInput1.getNumericValue();
                 if (mDollar > 0) {
                     glData.setTasaDolar(mDollar);
+                    int inputIdx = GetDollar.mDollar.size()-1;
+                    if(inputIdx == glData.optTasa ) {
+                        GetDollar.mDollar.set(inputIdx, mDollar);
+                    }
                 }
                 else {
                     glData.setTasaDolar(0);
@@ -209,6 +216,29 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
         mostrarFragment(new BolivaresFragment());
     }
 
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//
+//        Basic.msg(""+glData.getOptTasa());
+//        mSpin1.setSelection(glData.getOptTasa());
+//        mSpin2.setSelection(currSel2);
+//
+//    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+
+        super.onRestoreInstanceState(savedInstanceState);
+        GetDollar mGet = new GetDollar(AppContextProvider.getAppContext(), CalcActivity.this, mSpin1 , mInput1);
+        try {
+            GetDollar.urlRun();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     // this event will enable the back
     // function to the button on press
     @Override
@@ -249,7 +279,7 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
 
         //Boton que recarga el precio dolar
         if (itemId == R.id.butt1) {
-            GetDollar mGet = new GetDollar(getApplicationContext(), CalcActivity.this, mSpin1, mDollInput);
+            GetDollar mGet = new GetDollar(AppContextProvider.getAppContext(), CalcActivity.this, mSpin1, mInput1);
             try {
                 GetDollar.urlRun();
             } catch (IOException e) {

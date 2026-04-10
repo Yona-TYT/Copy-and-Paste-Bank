@@ -2,6 +2,7 @@ package com.example.copy_paste_bank;
 
 import static android.widget.GridLayout.spec;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -32,12 +33,16 @@ import java.util.Locale;
 import java.util.Objects;
 
 public class Basic {
+    @SuppressLint("StaticFieldLeak")
     private static Context mContex;
     private static String oldMsg = "";
     private static long lastShowTime = 0;
 
     public Basic(Context mContex) {
-        this.mContex = mContex;
+        Basic.mContex = mContex;
+        if (mContex == null){
+            Basic.mContex = AppContextProvider.getAppContext();
+        }
     }
 
     public int getPixelSiz(int id) {

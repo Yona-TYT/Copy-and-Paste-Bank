@@ -46,7 +46,8 @@ public class GetDollar {
     public static HashMap<String, List<List<String>>> arrayMap = new HashMap<>();;
     private static List<String> mIds = Arrays.asList("id1", "id2");
 
-    private static int myTry = 0;
+    // Se ha cambiado a 1 debidoa que el primer servidor ya no funciono mas
+    private static int myTry = 1;
 
     public GetDollar(Context mContext, FragmentActivity mActivity, Spinner mSpinner, TextView mTextView) {
         this.mContext = mContext;
@@ -204,6 +205,7 @@ public class GetDollar {
                         }
                         SelecAdapter adapt1 = new SelecAdapter(mContext, mSpinL1);
                         mSpinner.setAdapter(adapt1);
+                        mSpinner.setSelection(glData.getOptTasa());
                     }
                 });
             }

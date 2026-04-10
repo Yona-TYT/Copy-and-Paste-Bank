@@ -1,11 +1,8 @@
 package com.example.copy_paste_bank;
 
-import android.content.ClipData;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,17 +38,7 @@ public class DataExtracts {
             "0178;|;N58;N58"
     );
 
-    /*
-    0 = Numero de Telefono + Codg. Area
-    1 = Numero de Telefono Sin Codig. Area
-    2 = Cedula de Identidad
-    3 = Codg. Banco
-    4 = Monto con . y ,
-    5 = Nombre Banco
-    6 = Monto solo con ,
-    */
-    public static String[] mResList = {"","","","","","",""};
-    public static String[] mDebug = {""};
+    private static GlobalData glData = GlobalData.getInstance(AppContextProvider.getAppContext());
 
     public DataExtracts(){
     }
@@ -97,7 +84,7 @@ public class DataExtracts {
         if(idx >(-1)) {
             String mType = validateType(clipText);
             txList.add(txNum[idx].replaceAll("\\D",""));
-            mResList[2] = mType.toUpperCase()+txNum[idx].replaceAll("([^0-9])","");
+            glData.setDateList(2, mType.toUpperCase()+txNum[idx].replaceAll("([^0-9])",""));
             txNum[idx] = "";    //Clear the cedula number
         }
 
@@ -106,22 +93,21 @@ public class DataExtracts {
         //Basic.msg("->? "+idx);
 
         if(idx >(-1)) {
-            mResList[3] = (String)namRes[1];
-            mResList[5] = (String)namRes[2];
-
+            glData.setDateList(3, (String)namRes[1]);
+            glData.setDateList(5, (String)namRes[2]);
             txList.add(txNum[idx].replaceAll("\\D",""));
             txNum[idx] = "";    //Clear the bank number
         }
         else {
             String[] bankCode = validateBankName(txList, copyTx);
             if(!bankCode[0].isEmpty()){
-                mResList[3] = bankCode[0];
-                mResList[5] = bankCode[1];
+                glData.setDateList(3, bankCode[0]);
+                glData.setDateList(5, bankCode[1]);
             }
         }
-        if(mResList[4].isEmpty()){
-            mResList[4] = validateMonto(txList, clipText);
-            mResList[6] = mResList[4].replaceAll("\\.","");
+        if(glData.getDate(4).isEmpty()){
+            glData.setDateList(4, validateMonto(txList, clipText));
+            glData.setDateList(6,  glData.getDate(4).replaceAll("\\.",""));
         }
     }
 
@@ -322,8 +308,8 @@ public class DataExtracts {
                 //Basic.msg("-> "+text);
                 String tlf = value.replaceFirst(text, "");
                 if(tlf.length() == 7) {
-                    mResList[0] = value;
-                    mResList[1] = tlf;
+                    glData.setDateList(0, value);
+                    glData.setDateList(1,  tlf);
                     return true;
                 }
             }
@@ -332,8 +318,8 @@ public class DataExtracts {
                 //Basic.msg("-> "+text);
                 String tlf = value.replaceFirst(copyText, "");
                 if(tlf.length() == 7) {
-                    mResList[0] = text+tlf;
-                    mResList[1] = tlf;
+                    glData.setDateList(0, text+tlf);
+                    glData.setDateList(1, tlf);
                     return true;
                 }
             }
@@ -387,7 +373,7 @@ public class DataExtracts {
                 for(String mCode : mBankList){
                     String code = mCode.split(";")[0];
                     if(code.equals(text)){
-                        mResList[3] = code;
+                        glData.setDateList(3, code);
                         return new Object[]{i,code,mCode.split(";")[3]};
                     }
                 }
@@ -409,7 +395,7 @@ public class DataExtracts {
 
             rawTx = rawTx.replaceAll("(^_)|(_$)","");
 
-        mDebug[0] = rawTx ;
+        GlobalData.dataDbg[0] = rawTx ;
 
         //Basic.msg("->? "+text);
             for (String newTx : mBankList) {

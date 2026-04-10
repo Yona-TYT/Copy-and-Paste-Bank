@@ -23,11 +23,23 @@ public class GlobalData {
             new Double[] {0.0, 0.0, 0.0}
     };
 
+    /*
+    0 = Numero de Telefono + Codg. Area
+    1 = Numero de Telefono Sin Codig. Area
+    2 = Cedula de Identidad
+    3 = Codg. Banco
+    4 = Monto con . y ,
+    5 = Nombre Banco
+    6 = Monto solo con ,
+    */
+    public String[] dataList = {"","","","","","",""};
+    public static String[] dataDbg = {""};
+
     public int optCalc = 0;
 
 
     private GlobalData(Context context) {
-        this.applicationContext = context.getApplicationContext(); // Garantizamos ApplicationContext
+        this.applicationContext = AppContextProvider.getAppContext(); // Garantizamos ApplicationContext
     }
 
     /**
@@ -111,5 +123,22 @@ public class GlobalData {
                 new Double[]{(double) 0, (double) 0, (double) 0},
                 new Double[]{(double) 0, (double) 0, (double) 0}
         };
+    }
+
+    public void setDateList(int opt, String mDate) {
+        if (opt < this.dataList.length){
+            this.dataList[opt] = mDate;
+        }
+    }
+
+    public String getDate(int opt) {
+        if (opt < this.dataList.length){
+            return this.dataList[opt];
+        }
+        return "";
+    }
+
+    public String[] getDateList() {
+        return this.dataList;
     }
 }

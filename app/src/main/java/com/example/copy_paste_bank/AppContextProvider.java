@@ -12,6 +12,8 @@ public class AppContextProvider extends Application {
         // Inicializamos AppData de forma segura
         GlobalData.initialize(this);
         sInstance = this;
+
+        new Basic(this);
     }
 
     public static AppContextProvider getInstance() {

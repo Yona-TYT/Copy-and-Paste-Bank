@@ -84,8 +84,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Switch mSw1;
     private boolean isConv = false;
 
-    public String[] mResList = DataExtracts.mResList;
-    public String[] mDebug = DataExtracts.mDebug;
+    public String[] mResList;
+    public String[] mDebug = GlobalData.dataDbg;
     private String mConver = "";
 
     private ActivityResultLauncher<Uri> takePictureLauncher;
@@ -94,9 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Launcher mLaunch;
 
-    private GlobalData glData = GlobalData.getInstance(this);
-
-    private ActivityMainBinding binding;
+    private GlobalData glData = GlobalData.getInstance(AppContextProvider.getAppContext());
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -151,13 +149,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mInput2.setOnClickListener(this);
         mSw1.setOnClickListener(this);
 
-        new Basic(this);
         new FilesManager(this);
 
         mSw1.setChecked(false);
 
+        refresh();
 
-        GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mInput1);
+        GetDollar mGet = new GetDollar(AppContextProvider.getAppContext(), MainActivity.this, mSpin1 , mInput1);
         try {
             GetDollar.urlRun();
         } catch (IOException e) {
@@ -250,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void afterTextChanged(Editable editable) {
                 if(mInput2.hasFocus()) {
-                    DataExtracts.mResList[4] = getInputValue();
+                    glData.setDateList(4, getInputValue());
                 }
             }
         });
@@ -267,9 +265,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-
-        refresh();
-
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -284,6 +279,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void refresh() {
+
+        mResList = glData.getDateList();
+
+        Basic.msg(""+glData.getDate(0));
+
         if(glData.getSendValue() > 0){
 
             mResList[4] = Basic.setFormatter(Double.toString(glData.getSendValue()));
@@ -293,6 +293,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mSw1.setChecked(false);
 
             glData.setSendValue(0.0);
+
         }
     }
 
