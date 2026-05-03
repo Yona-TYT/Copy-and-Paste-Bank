@@ -88,6 +88,7 @@
         android:padding="6dp"
         android:text="0,00"
         android:textSize="@dimen/inner_text_2"
+        android:tag="1"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline2"

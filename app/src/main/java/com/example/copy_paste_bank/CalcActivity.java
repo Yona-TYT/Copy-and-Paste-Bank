@@ -119,12 +119,12 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
 
                 if(i == inputIdx){
                     if(mDollar > 0){
-                        mInput1.setText(Basic.setFormatter(mDollar.toString()));
+                        mInput1.setText(Basic.setFormatterEs(mDollar.toString()));
                     }
                     Basic.setReadOnly(mInput1, false);
                 }
                 else {
-                    mInput1.setText(Basic.setFormatter(mDollar.toString()));
+                    mInput1.setText(Basic.setFormatterEs(mDollar.toString()));
                     Basic.setReadOnly(mInput1, true);
                 }
 

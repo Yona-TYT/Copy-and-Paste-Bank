@@ -32,7 +32,7 @@ public class GlobalData {
     5 = Nombre Banco
     6 = Monto solo con ,
     */
-    public String[] dataList = {"","","","","","",""};
+    public static String[] dataList = {"","","","","","",""};
     public static String[] dataDbg = {""};
 
     public int optCalc = 0;
@@ -129,6 +129,10 @@ public class GlobalData {
         if (opt < this.dataList.length){
             this.dataList[opt] = mDate;
         }
+    }
+
+    public void setDateList(String[] mDate) {
+        this.dataList = mDate;
     }
 
     public String getDate(int opt) {

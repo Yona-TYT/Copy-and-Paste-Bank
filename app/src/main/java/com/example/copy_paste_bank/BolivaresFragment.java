@@ -40,9 +40,9 @@ public class BolivaresFragment extends Fragment {
 
         saveList = glData.getListCalc(saveIdx);
 
-        input1.setText(Basic.setFormatter(saveList[0]));
-        mText1.setText(Basic.setFormatter(saveList[1]+" $"));
-        mText2.setText(Basic.setFormatter(saveList[2]+" Bs"));
+        input1.setText(Basic.setFormatterEs(saveList[0]));
+        mText1.setText(Basic.setFormatterEs(saveList[1]+" $"));
+        mText2.setText(Basic.setFormatterEs(saveList[2]+" Bs"));
 
         input1.addTextChangedListener(new TextWatcher() {
             @Override
@@ -83,13 +83,13 @@ public class BolivaresFragment extends Fragment {
         Double mResValue = (double)0;
         if (mDollar > 0) {
             mResValue = input1.getNumericValue() / mDollar;
-            mText1.setText(Basic.setFormatter(mResValue)+" $");
+            mText1.setText(Basic.setFormatterEs(mResValue)+" $");
         }
         else {
             mText1.setText("0");
         }
 
-        mText2.setText(Basic.setFormatter(mDollar)+" Bs");
+        mText2.setText(Basic.setFormatterEs(mDollar)+" Bs");
 
         // Guarda los valores globalmente: Bolivares, Dolares, Tasa
         glData.setListCalc(new Double[]{input1.getNumericValue(), mResValue, mDollar}, saveIdx);

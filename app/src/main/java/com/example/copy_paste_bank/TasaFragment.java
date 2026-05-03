@@ -1,8 +1,5 @@
 package com.example.copy_paste_bank;
 
-import static android.content.Context.CLIPBOARD_SERVICE;
-import static androidx.core.content.ContextCompat.getSystemService;
-
 import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -18,7 +15,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
 public class TasaFragment extends Fragment {
@@ -47,9 +43,9 @@ public class TasaFragment extends Fragment {
 
         saveList = glData.getListCalc(saveIdx);
 
-        input1.setText(Basic.setFormatter(saveList[1]));
-        input2.setText(Basic.setFormatter(saveList[0]));
-        mText1.setText(Basic.setFormatter(saveList[2]+" Bs"));
+        input1.setText(Basic.setFormatterEs(saveList[1]));
+        input2.setText(Basic.setFormatterEs(saveList[0]));
+        mText1.setText(Basic.setFormatterEs(saveList[2]+" Bs"));
 
         input1.addTextChangedListener(new TextWatcher() {
             @Override
@@ -105,7 +101,7 @@ public class TasaFragment extends Fragment {
         Double mResValue = (double)0;
         if (valueA > 0) {
             mResValue = valueB / valueA;
-            mText1.setText(Basic.setFormatter(mResValue)+" Bs");
+            mText1.setText(Basic.setFormatterEs(mResValue)+" Bs");
         }
         else {
             mText1.setText("0");

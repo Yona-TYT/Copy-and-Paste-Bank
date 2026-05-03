@@ -43,8 +43,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
-import com.example.copy_paste_bank.databinding.ActivityMainBinding;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -83,8 +83,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Switch mSw1;
     private boolean isConv = false;
+    private boolean isEsFormat = true;
 
     public String[] mResList;
+
+    public Double glMonto = 0.0;
+
     public String[] mDebug = GlobalData.dataDbg;
     private String mConver = "";
 
@@ -151,14 +155,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         new FilesManager(this);
 
+        Msg.init(this);
+
         mSw1.setChecked(false);
 
-        refresh();
+
 
         GetDollar mGet = new GetDollar(AppContextProvider.getAppContext(), MainActivity.this, mSpin1 , mInput1);
         try {
             GetDollar.urlRun();
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (savedInstanceState != null) {
+            glMonto = savedInstanceState.getDouble("monto");
+            isEsFormat = savedInstanceState.getBoolean("isEs");
+            mResList = savedInstanceState.getStringArray("mResList");
+            glData.setDateList(mResList);
+        }
+
+        try {
+            refresh();
+        } catch (ParseException e) {
             throw new RuntimeException(e);
         }
 
@@ -195,14 +214,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 if(i == GetDollar.mDollar.size()-1){
                     GetDollar.mDollar.set(i, GetDollar.mDollar.get(glData.getOptTasa()));
-                    mInput1.setText(Basic.setFormatter(GetDollar.mDollar.get(i).toString()));
+                    mInput1.setText(Basic.setFormatAlternate(GetDollar.mDollar.get(i).toString(), isEsFormat));
 
                     mInput1.setVisibility(View.VISIBLE);
                     mDollView.setVisibility(View.INVISIBLE);
 
                 }
                 else {
-                    mDollView.setText(Basic.setFormatter(GetDollar.mDollar.get(i).toString())+" Bs");
+                    mDollView.setText(Basic.setFormatAlternate(GetDollar.mDollar.get(i).toString(), isEsFormat)+" Bs");
 
                     mInput1.setVisibility(View.INVISIBLE);
                     mDollView.setVisibility(View.VISIBLE);
@@ -210,13 +229,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 glData.setOptTasa(i);
                 mSw1.setChecked(false);
                 isConv = false;
-                mInput2.setText(formatNumber(mResList[4], false));   //Monto
+                mInput2.setText(Basic.setFormatAlternate(glMonto, isEsFormat));   //Monto
 
                 View spinnerSel = mSpin1.getSelectedView();
                 if(spinnerSel != null) {
                     TextView mView = spinnerSel.findViewWithTag(i);
                     mView.setText(glData.getSpinTasa().get(i));
-                    //Basic.msg(""+mSpin1.getSelectedView().findViewWithTag(i));
+                    //Msg.m(""+mSpin1.getSelectedView().findViewWithTag(i));
                 }
             }
             @Override
@@ -249,6 +268,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void afterTextChanged(Editable editable) {
                 if(mInput2.hasFocus()) {
                     glData.setDateList(4, getInputValue());
+                    glMonto = mInput2.getNumericValue();
                 }
             }
         });
@@ -273,48 +293,93 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        refresh();
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // Guardamos el valor numérico actual
+        outState.putDouble("monto", glMonto);
+        outState.putBoolean("isEs", isEsFormat);
+        outState.putStringArray("mResList", glData.getDateList());
+
     }
 
-    private void refresh() {
+    @Override
+    protected void onResume() {
+        super.onResume();
+        try {
+            refresh();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        recognizer.close();
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void refresh() throws ParseException {
         mResList = glData.getDateList();
+        glMonto = detectNumberFormat(mResList[4]);
 
-        Basic.msg(""+glData.getDate(0));
+        mText1.setText(formatPhone(mResList[0]));              //Telf + Area
+        mText3.setText(formatNumber(mResList[2], true));    // Cedula
+        mText4.setText(mResList[3]+(mResList[3].isEmpty()?"":" ")+mResList[5]);           // Codig Banco
+
+
+        Double value1 = mInput1.getNumericValue();
+        Double value2 = mInput2.getNumericValue();
+        // 2. Cambiar el icono dinámicamente
+        if (isEsFormat) {
+            mInput1.setLocale("ES");
+            mInput2.setLocale("ES");
+
+            mInput1.setText(Basic.setFormatterEs(value1));
+            mInput2.setText(Basic.setFormatterEs(value2));
+
+        } else {
+            mInput1.setLocale("EN");
+            mInput2.setLocale("EN");
+
+            mInput1.setText(Basic.setFormatterEn(value1));
+            mInput2.setText(Basic.setFormatterEn(value2));
+
+        }
+
+        invalidateOptionsMenu();
 
         if(glData.getSendValue() > 0){
-
-            mResList[4] = Basic.setFormatter(Double.toString(glData.getSendValue()));
-            mInput2.setText(formatNumber(mResList[4], false));
+            glMonto = glData.getSendValue();
+            mInput2.setText(Basic.setFormatAlternate(glMonto, isEsFormat));
 
             isConv = false;
             mSw1.setChecked(false);
 
             glData.setSendValue(0.0);
-
         }
     }
 
     @SuppressLint("ResourceType")
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.format, menu);
         getMenuInflater().inflate(R.menu.calc, menu);
         getMenuInflater().inflate(R.menu.history, menu);
 
         for(int i = 0; i < menu.size(); i++){
             MenuItem item = menu.getItem(i);
-//            Drawable drawable = item.getIcon();
-
-//            if(drawable != null) {
-////                drawable.mutate();
-////                drawable.setColorFilter(ContextCompat.getColor(this, R.color.inner_button), PorterDuff.Mode.SRC_ATOP);
-//            }
-
             SpannableString spannabl = new SpannableString(item.getTitle().toString());
             spannabl.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.black)),0 ,spannabl.length(),0);
             item.setTitle(spannabl);
+
+            if(item.getItemId() == R.id.format){
+                if (isEsFormat) {
+                    item.setIcon(R.drawable.es_format);
+                } else {
+                    item.setIcon(R.drawable.en_format);
+                }
+            }
         }
         //test.setBackgroundColor(ContextCompat.getColor(test.getContext(), R.color.purple_500));
         return true;
@@ -332,8 +397,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (itemId == R.id.history) {
             //Intent mIntent = new Intent(this, CalcActivity.class);
            //startActivity(mIntent);
-            Basic.msg("No implementado!");
+            Msg.m("No implementado!");
         }
+
+        if (itemId == R.id.format) {
+            //Intent mIntent = new Intent(this, CalcActivity.class);
+            //startActivity(mIntent);
+
+            // 1. Alternar el estado
+            isEsFormat = !isEsFormat;
+            Double value1 = mInput1.getNumericValue();
+            Double value2 = mInput2.getNumericValue();
+
+            // 2. Cambiar el icono dinámicamente
+            if (isEsFormat) {
+                item.setIcon(R.drawable.es_format);
+                mInput1.setLocale("ES");
+                mInput2.setLocale("ES");
+
+                mInput1.setText(Basic.setFormatterEs(value1));
+                mInput2.setText(Basic.setFormatterEs(value2));
+
+                Msg.m("Formato Numerico ES");
+
+            } else {
+                item.setIcon(R.drawable.en_format);
+                mInput1.setLocale("EN");
+                mInput2.setLocale("EN");
+
+                mInput1.setText(Basic.setFormatterEn(value1));
+                mInput2.setText(Basic.setFormatterEn(value2));
+
+                Msg.m("Formato Numerico EN");
+            }
+        }
+
         return true;
     }
 
@@ -362,11 +460,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        recognizer.close();
-    }
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -387,7 +480,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
         //Test
-        //DataExtracts.mResList[4] = getInputValue();
+        //DataExtracts.glMonto = getInputValue();
 
         //Boton que recarga el precio dolar
         if (itemId == R.id.buttRe) {
@@ -413,104 +506,105 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if(GetDollar.getPrice(glData.getOptTasa()) <= 0){
                 isConv = false;
                 mSw1.setChecked(false);
-                Basic.msg("Error obteniendo precio del DOLAR");
+                Msg.m("Error obteniendo precio del DOLAR");
                 return;
             }
             if(!isConv) {
 
-                mInput2.setText(formatNumber(mResList[4], false));   //Monto
+                mInput2.setText(Basic.setFormatAlternate(glMonto, isEsFormat));   //Monto
 
-                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
+                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + glMonto);
                 clipboard.setPrimaryClip(clipData);
-                Basic.msg("Monto en Bolivares");
+                Msg.m("Monto en Bolivares");
             }
             else {
 
                 mInput2.clearFocus();
 
-                if(mResList[4].isEmpty()){
+                if(glMonto < 1){
                     mSw1.setChecked(false);
                     isConv = false;
-                    Basic.msg("El monto esta Vacio!.");
+                    Msg.m("El monto esta Vacio!.");
                 }
                 else {
 
                     mInput2.setCurrencySymbol("Bs");
 
-                    double value;
-                    try {
-                        value = Basic.notFormatter(mResList[4]);
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
-                    }
+                    double value = glMonto;
+//                    try {
+//                        value = Basic.notFormatter(glMonto);
+//                    } catch (ParseException e) {
+//                        throw new RuntimeException(e);
+//                    }
                     value *= GetDollar.getPrice(glData.getOptTasa());
-                    mConver = Basic.setFormatter(Double.toString(value));
-                    mInput2.setText(mConver);   //Monto
+                    mConver = Basic.setFormatAlternate(value, isEsFormat);
+                    mInput2.setText(Basic.setFormatAlternate(value, isEsFormat));   //Monto
 
                     ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mConver);
                     clipboard.setPrimaryClip(clipData);
-                    Basic.msg("Monto convertido a: "+ glData.getSpinTasa().get(glData.getOptTasa()));
+                    Msg.m("Monto convertido a: "+ glData.getSpinTasa().get(glData.getOptTasa()));
                 }
             }
         }
 
+
         //Telefono completo
         if (itemId == R.id.butt2) {
             if(mResList[0].isEmpty()){
-                Basic.msg("Este Campo esta VACIO!:");
+                Msg.m("Este Campo esta VACIO!:");
             }
             else {
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0]);
                 clipboard.setPrimaryClip(clipData);
-                Basic.msg("Telf + Area copiado al portapapeles.");
+                Msg.m("Telf + Area copiado al portapapeles.");
             }
         }
 
         //Cedula
         if (itemId == R.id.butt4) {
             if(mResList[2].isEmpty()){
-                Basic.msg("Este Campo esta VACIO!:");
+                Msg.m("Este Campo esta VACIO!:");
             }
             else {
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[2]);
                 clipboard.setPrimaryClip(clipData);
-                Basic.msg("ID copiado al portapapeles.");
+                Msg.m("ID copiado al portapapeles.");
             }
         }
 
         //Codigo Banco
         if (itemId == R.id.butt5) {
             if(mResList[3].isEmpty()){
-                Basic.msg("Este Campo esta VACIO!:");
+                Msg.m("Este Campo esta VACIO!:");
             }
             else {
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[3]);
                 clipboard.setPrimaryClip(clipData);
-                Basic.msg("Codg. Banco Copiado al portapapeles.");
+                Msg.m("Codg. Banco Copiado al portapapeles.");
             }
         }
 
         //Monto
         if (itemId == R.id.butt6) {
             if(getInputValue().isEmpty()){
-                Basic.msg("Este Campo esta VACIO!:");
+                Msg.m("Este Campo esta VACIO!:");
             }
             else {
                 ClipData clipData = ClipData.newPlainText("Clip Data", (isConv? mConver : getInputValue()));
                 clipboard.setPrimaryClip(clipData);
-                Basic.msg("Monto Copiado al portapapeles.");
+                Msg.m("Monto Copiado al portapapeles.");
             }
         }
 
         //Todos los datos
         if (itemId == R.id.butt7) {
             if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && (isConv? mConver : getInputValue()).isEmpty()){
-                Basic.msg("Los campos estan VACIOS!:");
+                Msg.m("Los campos estan VACIOS!:");
             }
             else {
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + (isConv? mConver : getInputValue()));
                 clipboard.setPrimaryClip(clipData);
-                Basic.msg("Los datos se han copiado al portapapeles.");
+                Msg.m("Los datos se han copiado al portapapeles.");
             }
         }
 
@@ -518,7 +612,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (itemId == R.id.butt8) {
             ClipData clipData = ClipData.newPlainText("Clip Data", mText5.getText());
             clipboard.setPrimaryClip(clipData);
-            Basic.msg("Debug Copiado al portapapeles.");
+            Msg.m("Debug Copiado al portapapeles.");
         }
 
         //Boton Pegar
@@ -529,7 +623,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 text = Objects.requireNonNull(clipboard.getPrimaryClip()).getItemAt(0).getText().toString().toLowerCase();
             }
             else{
-                Basic.msg("No se encontraron DATOS!");
+                Msg.m("No se encontraron DATOS!");
                 return;
             }
             actionTrigger(clipboard, text);
@@ -555,48 +649,48 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Telefono Sin Area
         if (itemId == R.id.butt2) {
             if(mResList[1].isEmpty()){
-                Basic.msg("Este Campo esta VACIO!:");
+                Msg.m("Este Campo esta VACIO!:");
             }
             else {
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[1]);
                 clipboard.setPrimaryClip(clipData);
-                Basic.msg("Telf Sin Area copiado al portapapeles.");
+                Msg.m("Telf Sin Area copiado al portapapeles.");
             }
         }
 
         //Cedula sin Indicador de Tipo
         if (itemId == R.id.butt4) {
             if(mResList[2].isEmpty()){
-                Basic.msg("Este Campo esta VACIO!:");
+                Msg.m("Este Campo esta VACIO!:");
             }
             else {
                 ClipData clipData = ClipData.newPlainText("Clip Data", mResList[2].replaceAll("\\D",""));
                 clipboard.setPrimaryClip(clipData);
-                Basic.msg("ID sin TIPO copiado al portapapeles.");
+                Msg.m("ID sin TIPO copiado al portapapeles.");
             }
         }
 
         //Codigo Banco
         if (itemId == R.id.butt5) {
             if(mResList[3].isEmpty()){
-                Basic.msg("Este Campo esta VACIO!:");
+                Msg.m("Este Campo esta VACIO!:");
             }
             else {
                 ClipData clipData = ClipData.newPlainText("Clip Data", (mResList[3]+" "+mResList[5]));
                 clipboard.setPrimaryClip(clipData);
-                Basic.msg("Nombre y Codg. Banco Copiado al portapapeles.");
+                Msg.m("Nombre y Codg. Banco Copiado al portapapeles.");
             }
         }
 
         //Monto
         if (itemId == R.id.butt6) {
             if(getInputValue().isEmpty()){
-                Basic.msg("Este Campo esta VACIO!:");
+                Msg.m("Este Campo esta VACIO!:");
             }
             else {
                 ClipData clipData = ClipData.newPlainText("Clip Data", (isConv? (mConver+mInput2.getCurrencySymbol()): getInputValue()));
                 clipboard.setPrimaryClip(clipData);
-                Basic.msg("Monto y Simbolo Copiado al portapapeles.");
+                Msg.m("Monto y Simbolo Copiado al portapapeles.");
             }
         }
 
@@ -604,7 +698,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (itemId == R.id.butt8) {
             ClipData clipData = ClipData.newPlainText("Clip Data", mText5.getText());
             clipboard.setPrimaryClip(clipData);
-            Basic.msg("Debug Copiado al portapapeles.");
+            Msg.m("Debug Copiado al portapapeles.");
         }
 
         return true;
@@ -626,26 +720,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mText4.setText("");     // Codig Banco
         mInput2.setText("");     // Monto
         mText5.setText("");
+
+        glMonto = 0.0;
         //--------------------------------------
 
         DataExtracts.startinProcess(text);
 
+        try {
+            glMonto = detectNumberFormat(mResList[4]);
+
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+
         mText1.setText(formatPhone(mResList[0]));              //Telf + Area
         mText3.setText(formatNumber(mResList[2], true));    // Cedula
         mText4.setText(mResList[3]+" "+mResList[5]);           // Codig Banco
-        mInput2.setText(formatNumber(mResList[4], false));   //Monto
+        mInput2.setText(Basic.setFormatAlternate(glMonto, isEsFormat));   //Monto
         mText5.setText( mDebug[0]);                              // Debug
-        if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && mResList[4].isEmpty()){
-            Basic.msg("No se encontraron DATOS!");
+        if(mResList[0].isEmpty() && mResList[2].isEmpty() && mResList[3].isEmpty() && glMonto < 1){
+            Msg.m("No se encontraron DATOS!");
         }
         else {
             //Se apaga el sw
             isConv = false;
             mSw1.setChecked(false);
 
-            ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mResList[4]);
+            ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + glMonto);
             clipboard.setPrimaryClip(clipData);
-            Basic.msg("Pegado y copiado al portapapeles.");
+            Msg.m("Pegado y copiado al portapapeles.");
         }
     }
     public String formatNumber(String str, boolean id) {
@@ -684,6 +787,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         return formatter.format(Float.parseFloat(str));
     }
+
+    public static Double detectNumberFormat(String text) throws ParseException {
+        if (text == null || text.trim().isEmpty()) {
+            return 0.0;
+        }
+
+        String clean = text.trim();
+
+        // Patrón ES: punto como separador de miles + coma como decimal (1.234,56)
+        if (Pattern.matches("^[+-]?[0-9]{1,3}(?:\\.[0-9]{3})*(?:,[0-9]+)?$", clean)) {
+            return Basic.getDouble(text, true);
+        }
+
+        // Patrón EN: coma como separador de miles + punto como decimal (1,234.56)
+        if (Pattern.matches("^[+-]?[0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]+)?$", clean)) {
+            return Basic.getDouble(text, false);
+        }
+
+        return 0.0;
+    }
+
+
     public String formatPhone(String str) {
         if(str.isEmpty()){
             return "";
@@ -693,10 +818,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private String getInputValue(){
         if(isConv){
-            return mResList[4];
+            return Basic.setFormatAlternate(glMonto, isEsFormat);
         }
         else {
-            return Basic.setFormatter(Double.toString(mInput2.getNumericValue()));
+            return Basic.setFormatAlternate(mInput2.getNumericValue(), isEsFormat);
         }
     }
 }

@@ -15,7 +15,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
 public class DolaresFragment extends Fragment {
@@ -44,9 +43,9 @@ public class DolaresFragment extends Fragment {
 
         saveList = glData.getListCalc(saveIdx);
 
-        input1.setText(Basic.setFormatter(saveList[1]));
-        mText1.setText(Basic.setFormatter(saveList[0]+" Bs"));
-        mText2.setText(Basic.setFormatter(saveList[2]+" Bs"));
+        input1.setText(Basic.setFormatterEs(saveList[1]));
+        mText1.setText(Basic.setFormatterEs(saveList[0]+" Bs"));
+        mText2.setText(Basic.setFormatterEs(saveList[2]+" Bs"));
 
         input1.addTextChangedListener(new TextWatcher() {
             @Override
@@ -86,13 +85,13 @@ public class DolaresFragment extends Fragment {
         Double mResValue = (double)0;
         if (mDollar > 0) {
             mResValue = input1.getNumericValue() * mDollar;
-            mText1.setText(Basic.setFormatter(mResValue)+" Bs");
+            mText1.setText(Basic.setFormatterEs(mResValue)+" Bs");
         }
         else {
             mText1.setText("0");
         }
 
-        mText2.setText(Basic.setFormatter(mDollar)+" Bs");
+        mText2.setText(Basic.setFormatterEs(mDollar)+" Bs");
 
         // Guarda los valores globalmente: Bolivares, Dolares, Tasa
         glData.setListCalc(new Double[]{mResValue, input1.getNumericValue(), mDollar}, saveIdx);

@@ -3,7 +3,6 @@ package com.example.copy_paste_bank;
 import static android.widget.GridLayout.spec;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -13,8 +12,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.TextView;
@@ -24,11 +21,8 @@ import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 
 import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -55,18 +49,60 @@ public class Basic {
         return getPixelSiz(id) / scaledDensity;
     }
 
-    public static String setFormatter(String value){
+    public static String setFormatAlternate(String value, boolean langEs){
+        value = value.replaceAll("([^\\d.,-])","");
+        if (value.isEmpty()){
+            value = "0";
+        }
+        if(langEs) {
+            return setFormatterInternal(Double.parseDouble(value), new Locale("es", "VE"));
+        }
+        else{
+            return setFormatterInternal(Double.parseDouble(value), Locale.US);
+        }
+    }
+
+    public static String setFormatAlternate(Double value, boolean langEs) {
+        if (langEs) {
+            return setFormatterEs(value);
+        }
+        else {
+            return setFormatterEn(value);
+        }
+    }
+
+    public static String setFormatterEs(String value){
         value = value.replaceAll("([^\\d.,-])","");
         if (value.isEmpty()){
             value = "0,00";
         }
-        return setFormatter(Double.parseDouble(value));
+        return setFormatterInternal(Double.parseDouble(value), new Locale("es", "VE"));
     }
-    public static String setFormatter(Double value){
-        NumberFormat nf = NumberFormat.getNumberInstance(Locale.forLanguageTag("ES"));
-        DecimalFormat formatter = (DecimalFormat) nf;
-        formatter.applyPattern("###,##0.00");
-        return formatter.format(value);
+
+    public static String setFormatterEn(Double value) {
+        return setFormatterInternal(value, Locale.US);           // 1,234.56
+    }
+
+    public static String setFormatterEs(Double value) {
+        return setFormatterInternal(value, new Locale("es", "VE"));
+    }
+    public static String setFormatterInternal(Double value, Locale locale){
+        if (value == null) return "";
+        DecimalFormat df = (DecimalFormat) NumberFormat.getNumberInstance(locale);
+        df.applyPattern("#,##0.00");
+        return df.format(value);
+    }
+
+    public static Double getDouble(String value, boolean isEs) throws ParseException {
+        Locale locale = isEs ? new Locale("es", "VE") : Locale.US;
+        return getDouble(value, locale);
+    }
+
+    public static Double getDouble(String value, Locale locale) throws ParseException {
+
+        DecimalFormat df = (DecimalFormat) NumberFormat.getNumberInstance(locale);
+        df.applyPattern("###,##0.00");
+        return Objects.requireNonNull(df.parse(value)).doubleValue();
     }
 
     public static Double notFormatter(String value) throws ParseException {
@@ -185,6 +221,5 @@ public class Basic {
                 }
             }
         }
-
     }
 }
