@@ -74,7 +74,7 @@ public class Basic {
     public static String setFormatterEs(String value){
         value = value.replaceAll("([^\\d.,-])","");
         if (value.isEmpty()){
-            value = "0,00";
+            value = "0";
         }
         return setFormatterInternal(Double.parseDouble(value), new Locale("es", "VE"));
     }

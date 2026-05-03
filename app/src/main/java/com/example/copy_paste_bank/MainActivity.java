@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Spinner mSpin1;
     //private List<String> mSpinL1 = Arrays.asList("BCV", "Promedio", "Paralelo", "Valor Personalizado");
-    //private int currSel1 = 0;
+    private int currSel1 = 0;
 
     private Switch mSw1;
     private boolean isConv = false;
@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (savedInstanceState != null) {
             glMonto = savedInstanceState.getDouble("monto");
-            isEsFormat = savedInstanceState.getBoolean("isEs");
+            glData.setIsEsFormat(savedInstanceState.getBoolean("isEs"));
             mResList = savedInstanceState.getStringArray("mResList");
             glData.setDateList(mResList);
         }
@@ -214,14 +214,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 if(i == GetDollar.mDollar.size()-1){
                     GetDollar.mDollar.set(i, GetDollar.mDollar.get(glData.getOptTasa()));
-                    mInput1.setText(Basic.setFormatAlternate(GetDollar.mDollar.get(i).toString(), isEsFormat));
+                    mInput1.setText(Basic.setFormatAlternate(GetDollar.mDollar.get(i), isEsFormat));
 
                     mInput1.setVisibility(View.VISIBLE);
                     mDollView.setVisibility(View.INVISIBLE);
 
                 }
                 else {
-                    mDollView.setText(Basic.setFormatAlternate(GetDollar.mDollar.get(i).toString(), isEsFormat)+" Bs");
+                    mDollView.setText(Basic.setFormatAlternate(GetDollar.mDollar.get(i), isEsFormat)+" Bs");
 
                     mInput1.setVisibility(View.INVISIBLE);
                     mDollView.setVisibility(View.VISIBLE);
@@ -237,6 +237,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mView.setText(glData.getSpinTasa().get(i));
                     //Msg.m(""+mSpin1.getSelectedView().findViewWithTag(i));
                 }
+
+                currSel1 = i;
             }
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
@@ -322,6 +324,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void refresh() throws ParseException {
         mResList = glData.getDateList();
         glMonto = detectNumberFormat(mResList[4]);
+        isEsFormat = glData.getIsEsFormat();
 
         mText1.setText(formatPhone(mResList[0]));              //Telf + Area
         mText3.setText(formatNumber(mResList[2], true));    // Cedula
@@ -332,6 +335,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Double value2 = mInput2.getNumericValue();
         // 2. Cambiar el icono dinámicamente
         if (isEsFormat) {
+
             mInput1.setLocale("ES");
             mInput2.setLocale("ES");
 
@@ -385,7 +389,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return true;
     }
 
-    @SuppressLint("SetWorldReadable")
+    @SuppressLint({"SetWorldReadable", "SetTextI18n"})
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item){
         int itemId = item.getItemId();
@@ -406,6 +410,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // 1. Alternar el estado
             isEsFormat = !isEsFormat;
+            glData.setIsEsFormat(isEsFormat);
+
             Double value1 = mInput1.getNumericValue();
             Double value2 = mInput2.getNumericValue();
 
@@ -417,6 +423,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 mInput1.setText(Basic.setFormatterEs(value1));
                 mInput2.setText(Basic.setFormatterEs(value2));
+                mDollView.setText(Basic.setFormatterEs(GetDollar.mDollar.get(currSel1)) +" Bs");
 
                 Msg.m("Formato Numerico ES");
 
@@ -427,6 +434,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 mInput1.setText(Basic.setFormatterEn(value1));
                 mInput2.setText(Basic.setFormatterEn(value2));
+                mDollView.setText(Basic.setFormatterEn(GetDollar.mDollar.get(currSel1)) +" Bs");
 
                 Msg.m("Formato Numerico EN");
             }

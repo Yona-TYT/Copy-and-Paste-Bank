@@ -27,7 +27,7 @@ public class TasaFragment extends Fragment {
     private int saveIdx = 2;
     private Double[] saveList = {(double)0};
 
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -45,7 +45,7 @@ public class TasaFragment extends Fragment {
 
         input1.setText(Basic.setFormatterEs(saveList[1]));
         input2.setText(Basic.setFormatterEs(saveList[0]));
-        mText1.setText(Basic.setFormatterEs(saveList[2]+" Bs"));
+        mText1.setText(Basic.setFormatterEs(saveList[2])+" Bs");
 
         input1.addTextChangedListener(new TextWatcher() {
             @Override

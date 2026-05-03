@@ -16,6 +16,7 @@ public class GlobalData {
     public int optTasa = 0;
     public double tasaDolar = 0.0;
     public double sendValue = 0.0;
+    public boolean isEsFormat = true;
 
     public Double[][] listCalc = {
             new Double[] {0.0, 0.0, 0.0},
@@ -78,9 +79,14 @@ public class GlobalData {
     public void setSendValue(double value){
         this.sendValue = value;
     }
-
     public double getSendValue() {
         return this.sendValue;
+    }
+
+    public boolean getIsEsFormat(){ return this.isEsFormat; }
+
+    public void setIsEsFormat(boolean b){
+        this.isEsFormat = b;
     }
 
     public void setOptTasa(int opt) {

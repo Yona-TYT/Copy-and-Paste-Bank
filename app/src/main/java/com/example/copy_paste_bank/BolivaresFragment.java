@@ -26,6 +26,7 @@ public class BolivaresFragment extends Fragment {
     private int saveIdx = 0;
     private Double[] saveList = {(double)0};
 
+    @SuppressLint("SetTextI18n")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -41,8 +42,8 @@ public class BolivaresFragment extends Fragment {
         saveList = glData.getListCalc(saveIdx);
 
         input1.setText(Basic.setFormatterEs(saveList[0]));
-        mText1.setText(Basic.setFormatterEs(saveList[1]+" $"));
-        mText2.setText(Basic.setFormatterEs(saveList[2]+" Bs"));
+        mText1.setText(Basic.setFormatterEs(saveList[1])+" $");
+        mText2.setText(Basic.setFormatterEs(saveList[2])+" Bs");
 
         input1.addTextChangedListener(new TextWatcher() {
             @Override

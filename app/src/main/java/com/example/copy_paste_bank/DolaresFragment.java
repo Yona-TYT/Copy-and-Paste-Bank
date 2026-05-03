@@ -28,7 +28,7 @@ public class DolaresFragment extends Fragment {
     private int saveIdx = 1;
     private Double[] saveList = {(double)0};
 
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -44,8 +44,8 @@ public class DolaresFragment extends Fragment {
         saveList = glData.getListCalc(saveIdx);
 
         input1.setText(Basic.setFormatterEs(saveList[1]));
-        mText1.setText(Basic.setFormatterEs(saveList[0]+" Bs"));
-        mText2.setText(Basic.setFormatterEs(saveList[2]+" Bs"));
+        mText1.setText(Basic.setFormatterEs(saveList[0])+" Bs");
+        mText2.setText(Basic.setFormatterEs(saveList[2])+" Bs");
 
         input1.addTextChangedListener(new TextWatcher() {
             @Override
