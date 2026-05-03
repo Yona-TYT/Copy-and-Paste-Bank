@@ -282,6 +282,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(isConv) {
                     isConv = false;
                     mSw1.setChecked(false);
+                    mInput2.setCurrencySymbol("");
+                    mInput2.setText(Basic.setFormatAlternate(mInput2.getNumericValue(), glData.getIsEsFormat()));
                 }
                 return false;
             }
