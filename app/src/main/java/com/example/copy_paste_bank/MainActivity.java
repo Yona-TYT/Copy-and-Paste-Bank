@@ -778,9 +778,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isConv = false;
             mSw1.setChecked(false);
 
-            ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + glMonto);
-            clipboard.setPrimaryClip(clipData);
-            Msg.m("Pegado y copiado al portapapeles.");
+//            ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + glMonto);
+//            clipboard.setPrimaryClip(clipData);
+//            Msg.m("Pegado y copiado al portapapeles.");
         }
     }
     public String formatNumber(String str, boolean id) {
@@ -827,14 +827,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         String clean = text.trim();
 
-        // Patrón ES: punto como separador de miles + coma como decimal (1.234,56)
-        if (Pattern.matches("^[+-]?[0-9]{1,3}(?:\\.[0-9]{3})*(?:,[0-9]+)?$", clean)) {
-            return Basic.getDouble(text, true);
+        // Permite números sin separadores, con separadores de miles, y decimales
+        // Patrón más flexible
+
+        // 1. Formato ES: punto = miles, coma = decimal  (1.234,56 o 1234,56 o 1234)
+        if (Pattern.matches("^[+-]?[0-9]+(?:\\.[0-9]{3})*(?:,[0-9]+)?$", clean)) {
+            return Basic.getDouble(clean, true);   // true = ES
         }
 
-        // Patrón EN: coma como separador de miles + punto como decimal (1,234.56)
-        if (Pattern.matches("^[+-]?[0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]+)?$", clean)) {
-            return Basic.getDouble(text, false);
+        // 2. Formato EN: coma = miles, punto = decimal  (1,234.56 o 1234.56 o 1234)
+        if (Pattern.matches("^[+-]?[0-9]+(?:,[0-9]{3})*(?:\\.[0-9]+)?$", clean)) {
+            return Basic.getDouble(clean, false);  // false = EN
+        }
+
+        // 3. Último intento: número simple sin separadores (9450, 123.45, etc)
+        if (Pattern.matches("^[+-]?[0-9]+(?:[.,][0-9]+)?$", clean)) {
+            // Intentamos detectar si usa punto o coma como decimal
+            if (clean.contains(",")) {
+                return Basic.getDouble(clean, true);   // probablemente formato español
+            } else {
+                return Basic.getDouble(clean, false);  // formato inglés o sin decimal
+            }
         }
 
         return 0.0;

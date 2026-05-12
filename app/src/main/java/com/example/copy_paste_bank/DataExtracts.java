@@ -59,7 +59,6 @@ public class DataExtracts {
 
         //mDebug[0] = clipText;
 
-
         clipText = processString(clipText);
 
         String mSpl = " ";
@@ -106,12 +105,14 @@ public class DataExtracts {
             }
         }
         if(glData.getDate(4).isEmpty()){
+
             glData.setDateList(4, validateMonto(txList, clipText));
             glData.setDateList(6,  glData.getDate(4).replaceAll("\\.",""));
         }
     }
 
     private static String processString(String rawTx){
+
         rawTx = getSimple(rawTx);
 
         //Basic.msg(rawTx);
@@ -395,7 +396,7 @@ public class DataExtracts {
 
             rawTx = rawTx.replaceAll("(^_)|(_$)","");
 
-        GlobalData.dataDbg[0] = rawTx ;
+        //GlobalData.dataDbg[0] = rawTx ;
 
         //Basic.msg("->? "+text);
             for (String newTx : mBankList) {
@@ -492,32 +493,36 @@ public class DataExtracts {
 
         //mDebug[0] = rawTx;
 
-        rawTx = rawTx.replaceAll("(_)+", "_");
+        rawTx = rawTx.replaceAll("_+", "_");
 
-        //Basic.msg("-> "+rawTx);
+        // 2. Mejor regex: captura números completos (con o sin separadores)
+        patt = Pattern.compile("((?:^|_)\\d+(?:[._]\\d+)*(?:,\\d+)?(?:_|$))");
+        matc = patt.matcher(rawTx);
 
-        Pattern.compile("((^|_)\\d{1,3}([._]\\d{3})*(,\\d+)?(_|$))");
-        patt.matcher(rawTx);
-        if(matc.find()){
+        if (matc.find()) {
             String gr = matc.group(1);
-            assert gr != null;
-            String grCopy = gr.replaceAll("\\D", "");
-            for(String newTx : numList){
-                //Basic.msg("-> "+newTx);
-                if(newTx.equals(grCopy)){
-                    rawTx = rawTx.replaceFirst(gr, "");
-                    gr = "";
+            String grCopy = gr.replaceAll("\\D", ""); // solo dígitos
+
+            // Si está en la lista negra, eliminarlo completamente
+            boolean encontradoEnLista = false;
+            for (String newTx : numList) {
+                if (newTx.equals(grCopy)) {
+                    rawTx = rawTx.replaceFirst(Pattern.quote(gr), "");
+                    encontradoEnLista = true;
                     break;
                 }
             }
-            grCopy = gr.replaceAll("(^_+)|(_+$)", "");
-            grCopy = grCopy.replaceAll("_", ".");
-            grCopy = grCopy.replaceAll("(^)0+", "");
 
-            if(!gr.isEmpty()) {
-                rawTx = rawTx.replaceFirst(gr, grCopy);
+            if (!encontradoEnLista) {
+                // Limpiar separadores y normalizar
+                String cleaned = gr.replaceAll("(^_+)|(_+$)", ""); // quita _ al inicio/fin
+                cleaned = cleaned.replaceAll("_", ".");           // _ → .
+                cleaned = cleaned.replaceAll("^0+(\\d)", "$1");   // quita ceros a la izquierda (mejor que tu regex)
+
+                if (!cleaned.isEmpty()) {
+                    rawTx = rawTx.replaceFirst(Pattern.quote(gr), cleaned);
+                }
             }
-            //Basic.msg("-> "+grCopy);
         }
 
         rawTx = rawTx.replaceAll("bs", "_bs_");
@@ -533,8 +538,6 @@ public class DataExtracts {
             rawTx = rawTx.replace(gr, grCopy);
         }
 
-
-
         patt = Pattern.compile("((\\d+)(\\.)(\\d{1,2})_)");
         matc = patt.matcher(rawTx);
         if(matc.find()) {
@@ -546,35 +549,29 @@ public class DataExtracts {
         }
 
         //Basic.msg("-> "+rawTx);
-        // Procesan con simbolo BS
-        patt = Pattern.compile("(bs_[\\d,.]+(\\w|$))");
+        // ==================== PROCESAR BS ====================
+
+        // Caso 1: bs_ al inicio (bs_9450, bs_9.450, etc)
+        patt = Pattern.compile("bs[_ ]*([\\d,.]+)");
         matc = patt.matcher(rawTx);
         if (matc.find()) {
             String gr = matc.group(1);
-            //Basic.msg("-> "+gr);
-            assert gr != null;
-            gr = gr.replaceAll("[^\\d,.]", "");
-            gr = gr.replaceAll("(^)0+", "");
-            gr = gr.replaceAll("(^),", "0,");
-            gr = gr.replaceAll("[,.]+$|^[,.]+", "");
-            return gr;
+
+            //GlobalData.dataDbg[0] = gr ;
+
+            return limpiarNumero(gr);
         }
 
-        //Basic.msg("-> "+rawTx);
-
-        patt = Pattern.compile("((^|\\w)[\\d,.]+_bs)");
+        // Caso 2: _bs al final (9450_bs, 9.450_bs, etc)
+        patt = Pattern.compile("([\\d,.]+)[_ ]*bs");
         matc = patt.matcher(rawTx);
         if (matc.find()) {
             String gr = matc.group(1);
-            //Basic.msg("-> "+gr);
-            assert gr != null;
-            gr = gr.replaceAll("[^\\d,.]", "");
-            gr = gr.replaceAll("(^)0+", "");
-            gr = gr.replaceAll("(^),", "0,");
-            gr = gr.replaceAll("[,.]+$|^[,.]+", "");
-            return gr;
+
+           // GlobalData.dataDbg[0] = limpiarNumero(gr) ;
+
+            return limpiarNumero(gr);
         }
-        //---------------------------------------------------------------
         //Basic.msg("-> "+rawTx);
 
         rawTx = rawTx.replaceAll("(\\|)+", "_");
@@ -612,21 +609,31 @@ public class DataExtracts {
                     matc = patt.matcher(newTx);
                 }
 
-                patt = Pattern.compile("((\\d+)(\\.)(\\d{1,2})$)");
+                // ==================== CONVERTIR FORMATO EN → ES ====================
+                patt = Pattern.compile("([0-9,]+(?:\\.[0-9]{1,2})?)$");
                 matc = patt.matcher(newTx);
-                if(matc.find()) {
-                    String testPhone = newTx.replaceAll("\\D","");
-                    if(testPhone.length() != 11) {
-                        String gr = matc.group(1);
-                        //Basic.msg("-> "+gr);
-                        assert gr != null;
-                        String grCopy = gr.replaceAll("\\.", ",");
-                        newTx = newTx.replaceFirst(gr, grCopy);
+
+                if (matc.find()) {
+                    String numero = matc.group(1);
+
+                    // Si parece formato inglés (tiene coma como separador de miles y punto decimal)
+                    if (numero.contains(",") && numero.contains(".")) {
+
+                        // 1. Quitar todas las comas (separadores de miles)
+                        String limpio = numero.replaceAll(",", "");
+
+                        // 2. Cambiar el punto decimal por coma
+                        limpio = limpio.replace(".", ",");
+
+                        // 3. Añadir separadores de miles con punto (opcional pero recomendado)
+                        limpio = agregarSeparadoresMilesES(limpio);
+
+                        newTx = newTx.replace(numero, limpio);
                     }
                 }
-                //---------------------------------------------------------------
-                //Basic.msg("?-> "+newTx);
-                tx += newTx.replaceAll("[\\s-.]+","")+" ";
+
+                // Basic.msg("?-> " + newTx);
+                tx += newTx.replaceAll("[\\s-.]+", "") + " ";
             }
             if(res){
                 //Basic.msg("-> "+tx);
@@ -634,5 +641,37 @@ public class DataExtracts {
             }
         }
         return rawTx;
+    }
+
+    private static String agregarSeparadoresMilesES(String numero) {
+        // numero debe venir como "1000000,55" o "1234" o "1234,56"
+
+        String[] partes = numero.split(",");
+        String entero = partes[0];
+        String decimal = partes.length > 1 ? "," + partes[1] : "";
+
+        // Añadir puntos cada 3 dígitos de derecha a izquierda
+        StringBuilder sb = new StringBuilder();
+        int count = 0;
+
+        for (int i = entero.length() - 1; i >= 0; i--) {
+            sb.append(entero.charAt(i));
+            count++;
+            if (count % 3 == 0 && i > 0) {
+                sb.append(".");
+            }
+        }
+        return sb.reverse().toString() + decimal;
+    }
+
+    private static String limpiarNumero(String num) {
+        if (num == null || num.isEmpty()) return "";
+
+        num = num.replaceAll("[^\\d,.]", "");           // solo números, punto y coma
+        num = num.replaceAll("^0+(\\d)", "$1");         // quitar ceros a la izquierda
+        num = num.replaceAll("^,", "0,");               // ,123 → 0,123
+        num = num.replaceAll("[,.]+$", "");             // quitar separadores al final
+
+        return num;
     }
 }
