@@ -88,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public String[] mResList;
 
     public Double glMonto = 0.0;
+    public Double glTasa = 0.0;
 
     public String[] mDebug = GlobalData.dataDbg;
     private String mConver = "";
@@ -151,26 +152,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mButt8.setOnLongClickListener(this);
 
         mInput2.setOnClickListener(this);
-        mSw1.setOnClickListener(this);
 
         new FilesManager(this);
 
         Msg.init(this);
 
-        mSw1.setChecked(false);
-
-
-
-        GetDollar mGet = new GetDollar(AppContextProvider.getAppContext(), MainActivity.this, mSpin1 , mInput1);
-        try {
-            GetDollar.urlRun();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         if (savedInstanceState != null) {
+            glTasa = savedInstanceState.getDouble("tasa");
             glMonto = savedInstanceState.getDouble("monto");
             glData.setIsEsFormat(savedInstanceState.getBoolean("isEs"));
+            glData.setIsConv( savedInstanceState.getBoolean("isConv"));
             mResList = savedInstanceState.getStringArray("mResList");
             glData.setDateList(mResList);
         }
@@ -214,7 +206,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 if(i == GetDollar.mDollar.size()-1){
                     GetDollar.mDollar.set(i, GetDollar.mDollar.get(glData.getOptTasa()));
-                    mInput1.setText(Basic.setFormatAlternate(GetDollar.mDollar.get(i), isEsFormat));
+                    double mDollar = GetDollar.mDollar.get(i);
+                    if(mDollar > 0){
+                        mInput1.setText(Basic.setFormatAlternate(mDollar, isEsFormat));
+                    }
+                    else {
+                        mInput1.setText(Basic.setFormatAlternate(glTasa, isEsFormat));
+
+                    }
 
                     mInput1.setVisibility(View.VISIBLE);
                     mDollView.setVisibility(View.INVISIBLE);
@@ -228,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 glData.setOptTasa(i);
                 mSw1.setChecked(false);
-                isConv = false;
+                glData.setIsConv(false);
                 mInput2.setText(Basic.setFormatAlternate(glMonto, isEsFormat));   //Monto
 
                 View spinnerSel = mSpin1.getSelectedView();
@@ -237,7 +236,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mView.setText(glData.getSpinTasa().get(i));
                     //Msg.m(""+mSpin1.getSelectedView().findViewWithTag(i));
                 }
-
                 currSel1 = i;
             }
             @Override
@@ -245,6 +243,62 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             }
         });
+
+        mSw1.setOnCheckedChangeListener((buttonView, isChecked) -> {
+
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+
+                mInput2.setCurrencySymbol("");
+
+                isConv = glData.getIsConv();
+
+                isConv = !isConv;
+                if (GetDollar.getPrice(glData.getOptTasa()) > 0) {
+                    if (!isConv) {
+                        mInput2.setText(Basic.setFormatAlternate(glMonto, isEsFormat));   //Monto
+
+                        ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3] + "\n" + glMonto);
+                        clipboard.setPrimaryClip(clipData);
+                        Msg.m("Monto en Bolivares");
+                    }
+                    else {
+                        mInput2.clearFocus();
+
+                        if (glMonto < 1) {
+                            mSw1.setChecked(false);
+                            isConv = false;
+                            Msg.m("El monto esta Vacio!.");
+                        } else {
+
+                            mInput2.setCurrencySymbol("Bs");
+
+                            double value = glMonto;
+                            //                    try {
+                            //                        value = Basic.notFormatter(glMonto);
+                            //                    } catch (ParseException e) {
+                            //                        throw new RuntimeException(e);
+                            //                    }
+                            value *= GetDollar.getPrice(glData.getOptTasa());
+                            mConver = Basic.setFormatAlternate(value, isEsFormat);
+                            mInput2.setText(Basic.setFormatAlternate(value, isEsFormat));   //Monto
+
+                            ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3] + "\n" + mConver);
+                            clipboard.setPrimaryClip(clipData);
+                            Msg.m("Monto convertido a: " + glData.getSpinTasa().get(glData.getOptTasa()));
+                        }
+                    }
+                }
+                else {
+                    isConv = false;
+                    mSw1.setChecked(false);
+                    Msg.m("Error obteniendo precio del DOLAR");
+                }
+
+                glData.setIsConv(isConv);
+
+
+        });
+
 
         mInput1.addTextChangedListener(new TextWatcher() {
             @Override
@@ -255,6 +309,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             @Override
             public void afterTextChanged(Editable editable) {
+                glTasa = mInput1.getNumericValue();
                 GetDollar.mDollar.set(GetDollar.mDollar.size()-1, mInput1.getNumericValue());
             }
         });
@@ -299,11 +354,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        // Guardamos el valor numérico actual
+        // Guardamos Todos los Valores
+        outState.putDouble("tasa", glTasa);
         outState.putDouble("monto", glMonto);
         outState.putBoolean("isEs", isEsFormat);
+        outState.putBoolean("isConv", glData.getIsConv());
         outState.putStringArray("mResList", glData.getDateList());
-
     }
 
     @Override
@@ -324,9 +380,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @SuppressLint("SetTextI18n")
     private void refresh() throws ParseException {
+
         mResList = glData.getDateList();
         glMonto = detectNumberFormat(mResList[4]);
         isEsFormat = glData.getIsEsFormat();
+        isConv = glData.getIsConv();
+
+        // Input Tasa
+       // mInput1.setText(Basic.setFormatAlternate(glTasa, isEsFormat));
+
+        GetDollar mGet = new GetDollar(AppContextProvider.getAppContext(), MainActivity.this, mSpin1 , mInput1, glTasa, isConv);
+        try {
+            GetDollar.urlRun();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Selector de Covertor
+
+       //mSw1.setChecked(isConv);
 
         mText1.setText(formatPhone(mResList[0]));              //Telf + Area
         mText3.setText(formatNumber(mResList[2], true));    // Cedula
@@ -494,7 +566,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Boton que recarga el precio dolar
         if (itemId == R.id.buttRe) {
-            GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mDollView);
+            GetDollar mGet = new GetDollar(getApplicationContext(), MainActivity.this, mSpin1 , mDollView, glTasa, false);
             try {
                 GetDollar.urlRun();
             } catch (IOException e) {
@@ -509,53 +581,56 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-        if (itemId == R.id.switch1) {
-            mInput2.setCurrencySymbol("");
-
-            isConv = !isConv;
-            if(GetDollar.getPrice(glData.getOptTasa()) <= 0){
-                isConv = false;
-                mSw1.setChecked(false);
-                Msg.m("Error obteniendo precio del DOLAR");
-                return;
-            }
-            if(!isConv) {
-
-                mInput2.setText(Basic.setFormatAlternate(glMonto, isEsFormat));   //Monto
-
-                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + glMonto);
-                clipboard.setPrimaryClip(clipData);
-                Msg.m("Monto en Bolivares");
-            }
-            else {
-
-                mInput2.clearFocus();
-
-                if(glMonto < 1){
-                    mSw1.setChecked(false);
-                    isConv = false;
-                    Msg.m("El monto esta Vacio!.");
-                }
-                else {
-
-                    mInput2.setCurrencySymbol("Bs");
-
-                    double value = glMonto;
-//                    try {
-//                        value = Basic.notFormatter(glMonto);
-//                    } catch (ParseException e) {
-//                        throw new RuntimeException(e);
+//        if (itemId == R.id.switch1) {
+//            mInput2.setCurrencySymbol("");
+//
+//            isConv = glData.getIsConv();
+//            Basic.msg("hffg"+isConv);
+//
+//            isConv = !isConv;
+//            if (GetDollar.getPrice(glData.getOptTasa()) > 0) {
+//                if (!isConv) {
+//                    mInput2.setText(Basic.setFormatAlternate(glMonto, isEsFormat));   //Monto
+//
+//                    ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3] + "\n" + glMonto);
+//                    clipboard.setPrimaryClip(clipData);
+//                    Msg.m("Monto en Bolivares");
+//                }
+//                else {
+//                    mInput2.clearFocus();
+//
+//                    if (glMonto < 1) {
+//                        mSw1.setChecked(false);
+//                        isConv = false;
+//                        Msg.m("El monto esta Vacio!.");
+//                    } else {
+//
+//                        mInput2.setCurrencySymbol("Bs");
+//
+//                        double value = glMonto;
+//    //                    try {
+//    //                        value = Basic.notFormatter(glMonto);
+//    //                    } catch (ParseException e) {
+//    //                        throw new RuntimeException(e);
+//    //                    }
+//                        value *= GetDollar.getPrice(glData.getOptTasa());
+//                        mConver = Basic.setFormatAlternate(value, isEsFormat);
+//                        mInput2.setText(Basic.setFormatAlternate(value, isEsFormat));   //Monto
+//
+//                        ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3] + "\n" + mConver);
+//                        clipboard.setPrimaryClip(clipData);
+//                        Msg.m("Monto convertido a: " + glData.getSpinTasa().get(glData.getOptTasa()));
 //                    }
-                    value *= GetDollar.getPrice(glData.getOptTasa());
-                    mConver = Basic.setFormatAlternate(value, isEsFormat);
-                    mInput2.setText(Basic.setFormatAlternate(value, isEsFormat));   //Monto
-
-                    ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + mConver);
-                    clipboard.setPrimaryClip(clipData);
-                    Msg.m("Monto convertido a: "+ glData.getSpinTasa().get(glData.getOptTasa()));
-                }
-            }
-        }
+//                }
+//            }
+//            else {
+//                isConv = false;
+//                mSw1.setChecked(false);
+//                Msg.m("Error obteniendo precio del DOLAR");
+//            }
+//
+//            glData.setIsConv(isConv);
+//        }
 
 
         //Telefono completo

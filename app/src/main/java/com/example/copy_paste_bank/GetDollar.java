@@ -3,7 +3,9 @@ package com.example.copy_paste_bank;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.fragment.app.FragmentActivity;
@@ -28,8 +30,11 @@ public class GetDollar {
 
     private static Context mContext;
     private static FragmentActivity mActivity;
-    private static Spinner mSpinner;
-    private static TextView mTextView;
+    //private static Spinner mSpinner;
+    //private static TextView mTextView;
+    private static double mTasa;
+    private static boolean isConv;
+
 
     public static List<Double> mDollar = Arrays.asList((double)0, (double)0, (double)0, (double)0);
     public static List<String> mDate = Arrays.asList("", "", "", "");
@@ -49,11 +54,11 @@ public class GetDollar {
     // Se ha cambiado a 1 debidoa que el primer servidor ya no funciono mas
     private static int myTry = 1;
 
-    public GetDollar(Context mContext, FragmentActivity mActivity, Spinner mSpinner, TextView mTextView) {
+    public GetDollar(Context mContext, FragmentActivity mActivity, Spinner mSpinner, TextView mTextView, Double mTasa, boolean isConv) {
         this.mContext = mContext;
         this.mActivity = mActivity;
-        this.mSpinner = mSpinner;
-        this.mTextView = mTextView;
+        this.mTasa = mTasa;
+        this.isConv = isConv;
 
         arrayMap.clear(); //Limpia el mapa
 
@@ -195,15 +200,44 @@ public class GetDollar {
                         GlobalData glData = GlobalData.getInstance(AppContextProvider.getAppContext());
                         glData.setTasaDolar(GetDollar.mDollar.get(0));
 
-                        Object o = mTextView.getTag();
-                        boolean isEs = true;
-                        if (o != null) {
-                            String tagValue = o.toString();           // Convertir a String de forma segura
-                            isEs = tagValue.equals("1") || tagValue.equals("true");
-                        }
+                        EditText mInput = mActivity.findViewById(R.id.input1);
+                        Spinner mSpinner = mActivity.findViewById(R.id.spin1);
+                        Switch mSw1 = mActivity.findViewById(R.id.switch1);
+
+                        boolean isEs = glData.getIsEsFormat();
 
                         if(idx == (mUrlA.size()-1)) {
-                            mTextView.setText(Basic.setFormatAlternate(GetDollar.mDollar.get(idx).toString(), isEs) + " Bs");
+                            String value = Basic.setFormatAlternate(GetDollar.mDollar.get(idx).toString(), isEs);
+                            if(mTasa > 0){
+                                mInput.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mInput.setText(Basic.setFormatAlternate(mTasa, isEs));
+                                    }
+                                }, 100);
+                            }
+                            else {
+                                mInput.setText(value);
+                            }
+
+//                            mSpinner.postDelayed(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    GlobalData glData = GlobalData.getInstance(AppContextProvider.getAppContext());
+//
+//                                    if(mSw1 != null && !mSw1.isChecked()) {
+//                                        glData.setIsConv(false);
+//
+//                                        // Evita que el listener del switch reaccione al cambio que estamos haciendo por código
+//                                        mSw1.setPressed(false);
+//                                        mSw1.setChecked(isConv);
+//
+//                                        // Asegúrate de que el switch siga siendo cliqueable
+//                                        mSw1.setClickable(true);
+//                                        mSw1.setEnabled(true);
+//                                    }
+//                                }
+//                            }, 100);
                         }
                         List<String> mSpinL1 = Arrays.asList("BCV", "Promedio", "Paralelo", "Valor Personalizado");
                         for (int i = 0; i < mSpinL1.size(); i++) {
@@ -213,6 +247,26 @@ public class GetDollar {
                         SelecAdapter adapt1 = new SelecAdapter(mContext, mSpinL1);
                         mSpinner.setAdapter(adapt1);
                         mSpinner.setSelection(glData.getOptTasa());
+
+                        mSpinner.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                GlobalData glData = GlobalData.getInstance(AppContextProvider.getAppContext());
+
+                                if(mSw1 != null && !mSw1.isChecked()) {
+                                    glData.setIsConv(false);
+
+                                    // Evita que el listener del switch reaccione al cambio que estamos haciendo por código
+                                    mSw1.setPressed(false);
+                                    mSw1.setChecked(isConv);
+
+                                    // Asegúrate de que el switch siga siendo cliqueable
+                                    mSw1.setClickable(true);
+                                    mSw1.setEnabled(true);
+                                }
+                            }
+                        }, 100);
+
                     }
                 });
             }

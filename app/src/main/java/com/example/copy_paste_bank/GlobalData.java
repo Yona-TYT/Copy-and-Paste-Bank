@@ -17,6 +17,8 @@ public class GlobalData {
     public double tasaDolar = 0.0;
     public double sendValue = 0.0;
     public boolean isEsFormat = true;
+    public boolean isConv = false;
+
 
     public Double[][] listCalc = {
             new Double[] {0.0, 0.0, 0.0},
@@ -87,6 +89,12 @@ public class GlobalData {
 
     public void setIsEsFormat(boolean b){
         this.isEsFormat = b;
+    }
+
+    public boolean getIsConv(){ return this.isConv; }
+
+    public void setIsConv(boolean b){
+        this.isConv = b;
     }
 
     public void setOptTasa(int opt) {

@@ -4,7 +4,10 @@ import android.annotation.SuppressLint;
 import android.content.ClipboardManager;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.SpannableString;
 import android.text.TextWatcher;
+import android.text.style.ForegroundColorSpan;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -19,6 +22,7 @@ import androidx.activity.OnBackPressedDispatcher;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -45,6 +49,7 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
     private int currSel2 = 1;
     private int currFrag = 0;
 
+    private boolean isEsFormat = true;
 
     private CurrencyEditText mInput1;
 
@@ -101,6 +106,14 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
         //Limpia los valores guardados
         glData.cleanListCalc();
 
+        isEsFormat = glData.getIsEsFormat();
+
+        if (isEsFormat) {
+            mInput1.setLocale("ES");
+        } else {
+            mInput1.setLocale("EN");
+        }
+
         //Para la lista de Monitores de dolar ------------------------------------------------------
         SelecAdapter adapt1 = new SelecAdapter(this, glData.getSpinTasa());
         mSpin1.setAdapter(adapt1);
@@ -116,15 +129,14 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
 
                 int inputIdx = GetDollar.mDollar.size()-1;
 
-
                 if(i == inputIdx){
                     if(mDollar > 0){
-                        mInput1.setText(Basic.setFormatterEs(mDollar.toString()));
+                        mInput1.setText(Basic.setFormatAlternate(mDollar, isEsFormat));
                     }
                     Basic.setReadOnly(mInput1, false);
                 }
                 else {
-                    mInput1.setText(Basic.setFormatterEs(mDollar.toString()));
+                    mInput1.setText(Basic.setFormatAlternate(mDollar, isEsFormat));
                     Basic.setReadOnly(mInput1, true);
                 }
 
@@ -230,12 +242,35 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
 
         super.onRestoreInstanceState(savedInstanceState);
-        GetDollar mGet = new GetDollar(AppContextProvider.getAppContext(), CalcActivity.this, mSpin1 , mInput1);
+        GetDollar mGet = new GetDollar(AppContextProvider.getAppContext(), CalcActivity.this, mSpin1 , mInput1, 0.0, false);
         try {
             GetDollar.urlRun();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @SuppressLint("ResourceType")
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.format, menu);
+
+        for(int i = 0; i < menu.size(); i++){
+            MenuItem item = menu.getItem(i);
+            SpannableString spannabl = new SpannableString(item.getTitle().toString());
+            spannabl.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.black)),0 ,spannabl.length(),0);
+            item.setTitle(spannabl);
+
+            if(item.getItemId() == R.id.format){
+                if (isEsFormat) {
+                    item.setIcon(R.drawable.es_format);
+                } else {
+                    item.setIcon(R.drawable.en_format);
+                }
+            }
+        }
+        //test.setBackgroundColor(ContextCompat.getColor(test.getContext(), R.color.purple_500));
+        return true;
     }
 
 
@@ -247,6 +282,35 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
         if(itemId == android.R.id.home){
             this.finish();
             return true;
+        }
+
+        if (itemId == R.id.format) {
+            // 1. Alternar el estado
+            isEsFormat = !isEsFormat;
+            glData.setIsEsFormat(isEsFormat);
+
+            Double value1 = mInput1.getNumericValue();
+
+            // 2. Cambiar el icono dinámicamente
+            if (isEsFormat) {
+                item.setIcon(R.drawable.es_format);
+                mInput1.setLocale("ES");
+                mInput1.setText(Basic.setFormatterEs(value1));
+
+
+                Msg.m("Formato Numerico ES");
+
+            } else {
+                item.setIcon(R.drawable.en_format);
+                mInput1.setLocale("EN");
+
+                mInput1.setText(Basic.setFormatterEn(value1));
+
+                Msg.m("Formato Numerico EN");
+            }
+
+            // Recarga el fragment actual
+            recargarFragment(currFragment);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -279,7 +343,7 @@ public class CalcActivity extends AppCompatActivity implements View.OnClickListe
 
         //Boton que recarga el precio dolar
         if (itemId == R.id.butt1) {
-            GetDollar mGet = new GetDollar(AppContextProvider.getAppContext(), CalcActivity.this, mSpin1, mInput1);
+            GetDollar mGet = new GetDollar(AppContextProvider.getAppContext(), CalcActivity.this, mSpin1, mInput1, 0.0, false);
             try {
                 GetDollar.urlRun();
             } catch (IOException e) {

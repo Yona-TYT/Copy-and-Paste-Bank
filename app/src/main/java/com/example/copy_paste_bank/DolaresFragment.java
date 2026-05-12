@@ -28,6 +28,8 @@ public class DolaresFragment extends Fragment {
     private int saveIdx = 1;
     private Double[] saveList = {(double)0};
 
+    private boolean isEsFormat = true;
+
     @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     @Nullable
     @Override
@@ -42,10 +44,12 @@ public class DolaresFragment extends Fragment {
         input1.setHint("Ingrese dólares");
 
         saveList = glData.getListCalc(saveIdx);
+        isEsFormat = glData.getIsEsFormat();
 
-        input1.setText(Basic.setFormatterEs(saveList[1]));
-        mText1.setText(Basic.setFormatterEs(saveList[0])+" Bs");
-        mText2.setText(Basic.setFormatterEs(saveList[2])+" Bs");
+        isEsFormat = glData.getIsEsFormat();
+        input1.setText(Basic.setFormatAlternate(saveList[1], isEsFormat));
+        mText1.setText(Basic.setFormatAlternate(saveList[0], isEsFormat)+" Bs");
+        mText2.setText(Basic.setFormatAlternate(saveList[2], isEsFormat)+" Bs");
 
         input1.addTextChangedListener(new TextWatcher() {
             @Override
@@ -75,7 +79,7 @@ public class DolaresFragment extends Fragment {
             }
         });
 
-        refresh();
+        setCalc();
 
         return view;
     }
@@ -85,13 +89,13 @@ public class DolaresFragment extends Fragment {
         Double mResValue = (double)0;
         if (mDollar > 0) {
             mResValue = input1.getNumericValue() * mDollar;
-            mText1.setText(Basic.setFormatterEs(mResValue)+" Bs");
+            mText1.setText(Basic.setFormatAlternate(mResValue, isEsFormat)+" Bs");
         }
         else {
-            mText1.setText("0");
+            mText1.setText("");
         }
 
-        mText2.setText(Basic.setFormatterEs(mDollar)+" Bs");
+        mText2.setText(Basic.setFormatAlternate(mDollar, isEsFormat)+" Bs");
 
         // Guarda los valores globalmente: Bolivares, Dolares, Tasa
         glData.setListCalc(new Double[]{mResValue, input1.getNumericValue(), mDollar}, saveIdx);
@@ -101,7 +105,18 @@ public class DolaresFragment extends Fragment {
      * Método para actualizar el fragmento sin recrearlo
      */
     public void refresh() {
+        saveList = glData.getListCalc(saveIdx);
+        isEsFormat = glData.getIsEsFormat();
         if (input1 != null) {
+            Double value1 = input1.getNumericValue();
+            if (isEsFormat) {
+                input1.setLocale("ES");
+                input1.setText(Basic.setFormatterEs(value1));
+
+            } else {
+                input1.setLocale("EN");
+                input1.setText(Basic.setFormatterEn(value1));
+            }
             setCalc();
         }
     }

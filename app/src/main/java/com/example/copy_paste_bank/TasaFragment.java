@@ -27,6 +27,8 @@ public class TasaFragment extends Fragment {
     private int saveIdx = 2;
     private Double[] saveList = {(double)0};
 
+    private boolean isEsFormat = true;
+
     @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     @Nullable
     @Override
@@ -42,10 +44,11 @@ public class TasaFragment extends Fragment {
         input2.setHint("Ingrese Dolares");
 
         saveList = glData.getListCalc(saveIdx);
+        isEsFormat = glData.getIsEsFormat();
 
-        input1.setText(Basic.setFormatterEs(saveList[1]));
-        input2.setText(Basic.setFormatterEs(saveList[0]));
-        mText1.setText(Basic.setFormatterEs(saveList[2])+" Bs");
+        input1.setText(Basic.setFormatAlternate(saveList[1], isEsFormat));
+        input2.setText(Basic.setFormatAlternate(saveList[0], isEsFormat));
+        mText1.setText(Basic.setFormatAlternate(saveList[2], isEsFormat)+" Bs");
 
         input1.addTextChangedListener(new TextWatcher() {
             @Override
@@ -88,7 +91,7 @@ public class TasaFragment extends Fragment {
             }
         });
 
-        refresh();
+        setCalc();
 
         return view;
     }
@@ -101,10 +104,10 @@ public class TasaFragment extends Fragment {
         Double mResValue = (double)0;
         if (valueA > 0) {
             mResValue = valueB / valueA;
-            mText1.setText(Basic.setFormatterEs(mResValue)+" Bs");
+            mText1.setText(Basic.setFormatAlternate(mResValue, isEsFormat)+" Bs");
         }
         else {
-            mText1.setText("0");
+            mText1.setText("");
         }
 
         // Guarda los valores globalmente: Bolivares, Dolares, Tasa
@@ -115,7 +118,24 @@ public class TasaFragment extends Fragment {
      * Método para actualizar el fragmento sin recrearlo
      */
     public void refresh() {
+        saveList = glData.getListCalc(saveIdx);
+        isEsFormat = glData.getIsEsFormat();
         if (input1 != null && input2 != null) {
+            Double value1 = input1.getNumericValue();
+            Double value2 = input2.getNumericValue();
+            if (isEsFormat) {
+                input1.setLocale("ES");
+                input2.setLocale("ES");
+
+                input1.setText(Basic.setFormatterEs(value1));
+                input2.setText(Basic.setFormatterEs(value2));
+            } else {
+                input1.setLocale("EN");
+                input2.setLocale("EN");
+
+                input1.setText(Basic.setFormatterEn(value1));
+                input2.setText(Basic.setFormatterEn(value2));
+            }
             setCalc();
         }
     }
