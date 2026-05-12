@@ -778,9 +778,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             isConv = false;
             mSw1.setChecked(false);
 
-//            ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + glMonto);
-//            clipboard.setPrimaryClip(clipData);
-//            Msg.m("Pegado y copiado al portapapeles.");
+            if(mText5.getVisibility() == View.INVISIBLE) {
+                ClipData clipData = ClipData.newPlainText("Clip Data", mResList[0] + "\n" + mResList[2] + "\n" + mResList[3]+ "\n" + glMonto);
+                clipboard.setPrimaryClip(clipData);
+                Msg.m("Pegado y copiado al portapapeles.");
+            }
         }
     }
     public String formatNumber(String str, boolean id) {
