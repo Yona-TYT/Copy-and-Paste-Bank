@@ -62,13 +62,15 @@ public class DataExtracts {
         clipText = processString(clipText);
 
         for (String s : mTypeList){
-            clipText = clipText.replaceAll(Pattern.quote(s) + "[-_.\\s]?(\\d{6,9})", "#"+s+"$1");
+            clipText = clipText.replaceAll(Pattern.quote(s) + "[-_./\\s]?(\\d{6,9})", "#"+s+"$1");
         }
 
-        String mSpl = " ";
+        //GlobalData.dataDbg[0] = clipText;
+
+
         String copyTx = clipText.replaceAll("((_\\|_)+)|(\\|+)", " ");
 
-
+        String mSpl = "\\s+";
         String[] txAll = copyTx.split(mSpl);
         String[] txNum = copyTx.replaceAll("([^0-9\\s.,#])","").split(mSpl);
 
@@ -341,11 +343,12 @@ public class DataExtracts {
         for (int i = 0; i < list.length; i++) {
 
             String text = list[i];
+            copy += " "+text+" ";
             text = text.replaceAll("[^#\\d]", "");
 
             //Basic.msg("id>"+text);
 
-            if (text.length() > 5 && text.length() < 10) {
+            if (text.length() > 5 && text.length() < 11) {
                 if(idA == (-1) ) {
                     idA = i;
                 }
@@ -355,7 +358,7 @@ public class DataExtracts {
                 }
             }
         }
-        GlobalData.dataDbg[0] = copy;
+        //GlobalData.dataDbg[0] = copy;
 
         // Si encuentra resultados en el
         if (idB == -1) {
@@ -365,13 +368,16 @@ public class DataExtracts {
         }
     }
 
-    private static String validateType(String text){
-        text = text.replaceAll("[^\\d[a-z]\\s#]","");
+    private static String validateType(String rawTx){
+        rawTx = rawTx.replaceAll("[^\\d[a-z]\\s#]","");
+
+        //GlobalData.dataDbg[0] = rawTx ;
+
         String mType = "v";
         // Cambia la expresión regular para buscar cualquier símbolo '#' seguido de una letra
         Pattern p = Pattern.compile("(#([a-z]))");
 
-        for (String newTx : text.split("\\s+")) {
+        for (String newTx : rawTx.split("\\s+")) {
             Matcher m = p.matcher(newTx);
             if (m.find()) {
                 for(String s : mTypeList) {
@@ -478,7 +484,7 @@ public class DataExtracts {
         String[] mony = {"monto_(bs.)","monto_bs","bs","bs.","bolos","bsf","bolivares","monto", "dolar", "verdes", "dolares"};
 
         rawTx = rawTx.replaceAll("([\\n\\s])", "_");
-        //mDebug[0] = rawTx;
+        //GlobalData.dataDbg[0] = rawTx;
 
         for(String newTx:mony){
             rawTx = rawTx.replaceAll("[^a-z\\d]"+newTx+"[^a-z\\d]", "_bs_");
@@ -515,7 +521,7 @@ public class DataExtracts {
         rawTx = rawTx.replaceAll("([^0-9,.bs_|])", "");
         rawTx = rawTx.replaceAll("((^|_)[bs](_|$))", "");
 
-        //mDebug[0] = rawTx;
+        GlobalData.dataDbg[0] = rawTx;
 
         rawTx = rawTx.replaceAll("_+", "_");
 
