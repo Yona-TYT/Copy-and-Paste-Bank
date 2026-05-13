@@ -61,14 +61,20 @@ public class DataExtracts {
 
         clipText = processString(clipText);
 
+        for (String s : mTypeList){
+            clipText = clipText.replaceAll(Pattern.quote(s) + "[-_.\\s]?(\\d{6,9})", "#"+s+"$1");
+        }
+
         String mSpl = " ";
         String copyTx = clipText.replaceAll("((_\\|_)+)|(\\|+)", " ");
-        String[] txAll = copyTx.split(mSpl);
-        String[] txNum = copyTx.replaceAll("([^0-9\\s.,])","").split(mSpl);
 
-        for (String tx : txNum){
-           // Basic.msg(txNum[8]);
-        }
+
+        String[] txAll = copyTx.split(mSpl);
+        String[] txNum = copyTx.replaceAll("([^0-9\\s.,#])","").split(mSpl);
+
+//        for (String tx : txNum){
+//           // Basic.msg(txNum[8]);
+//        }
 
         List<String> txList = new ArrayList<>();
         int idx = validatePhoneNumber(txNum);
@@ -329,31 +335,49 @@ public class DataExtracts {
     }
 
     private static int validateID(String[] list) {
-        for (int i = 0; i< list.length ; i++){
+        int idA = -1;
+        int idB = -1;
+        String copy = "";
+        for (int i = 0; i < list.length; i++) {
+
             String text = list[i];
-            text = text.replaceAll("([.,]\\d{1,2}$)", "");
-            text = text.replaceAll("\\D", "");
+            text = text.replaceAll("[^#\\d]", "");
+
             //Basic.msg("id>"+text);
 
-            if(text.length() > 5 && text.length() < 10){
-                return i;
+            if (text.length() > 5 && text.length() < 10) {
+                if(idA == (-1) ) {
+                    idA = i;
+                }
+                if(text.startsWith("#")){
+                    idB = i;
+                    break;
+                }
             }
         }
-        return -1;
+        GlobalData.dataDbg[0] = copy;
+
+        // Si encuentra resultados en el
+        if (idB == -1) {
+            return idA;
+        } else {
+            return idB;
+        }
     }
 
     private static String validateType(String text){
-        text = text.replaceAll("[a-z]{2,}","");
-        text = text.replaceAll("[^\\d[a-z]\\s]","");
+        text = text.replaceAll("[^\\d[a-z]\\s#]","");
         String mType = "v";
+        // Cambia la expresión regular para buscar cualquier símbolo '#' seguido de una letra
+        Pattern p = Pattern.compile("(#([a-z]))");
 
-        Pattern p = Pattern.compile("([a-z][0-9]{6,10})");
-        for(String newTx : text.split(" ")) {
+        for (String newTx : text.split("\\s+")) {
             Matcher m = p.matcher(newTx);
             if (m.find()) {
-                for(String mtype : mTypeList) {
-                    if(newTx.startsWith(mtype)) {
-                        return mtype;
+                for(String s : mTypeList) {
+                    // Verifica si la palabra contiene exactamente la letra seguida del '#' (ej: "v#")
+                    if(newTx.contains("#"+s)) {
+                        return s;
                     }
                 }
             }
