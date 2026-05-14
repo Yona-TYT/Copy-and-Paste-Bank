@@ -57,25 +57,36 @@ public class DataExtracts {
 
         clipText = clipText.replaceAll("\\$", "bs");
 
-        //mDebug[0] = clipText;
+        //GlobalData.dataDbg[0] = clipText;
 
         clipText = processString(clipText);
 
-        for (String s : mTypeList){
-            clipText = clipText.replaceAll(Pattern.quote(s) + "[-_./\\s]?(\\d{6,9})", "#"+s+"$1");
+        for (int i = 0; i < mTypeList.size(); i++) {
+            String s = mTypeList.get(i);
+
+            // Se construye el String de la RegEx de forma dinámica con la palabra actual
+            String regex = "(?<![a-zA-Z])" + Pattern.quote(s) + "(?![a-zA-Z])[-_./\\s]{0,3}(\\d{6,9})";
+
+            // OPTIMIZACIÓN: Compilar el patrón dentro del bucle es la forma correcta de procesarlo
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(clipText);
+
+            // Realiza el reemplazo equivalente al replaceAll pero de forma más veloz
+            clipText = matcher.replaceAll(i + "#" + s + "$1");
         }
+        GlobalData.dataDbg[0] = clipText;
 
         //GlobalData.dataDbg[0] = clipText;
-
 
         String copyTx = clipText.replaceAll("((_\\|_)+)|(\\|+)", " ");
 
         String mSpl = "\\s+";
         String[] txAll = copyTx.split(mSpl);
+
         String[] txNum = copyTx.replaceAll("([^0-9\\s.,#])","").split(mSpl);
 
 //        for (String tx : txNum){
-//           // Basic.msg(txNum[8]);
+///            Basic.msg(,true);
 //        }
 
         List<String> txList = new ArrayList<>();
@@ -85,25 +96,30 @@ public class DataExtracts {
             txNum[idx] = "";    //Clear the phone number
         }
 
-        idx = validateID(txNum);
+        Integer[] resID = validateID(txNum);
         //Basic.msg("-Id>? "+idx);
 
-        if(idx >(-1)) {
-            String mType = validateType(clipText);
-            txList.add(txNum[idx].replaceAll("\\D",""));
-            glData.setDateList(2, mType.toUpperCase()+txNum[idx].replaceAll("([^0-9])",""));
-            txNum[idx] = "";    //Clear the cedula number
-        }
+        //if(idx >(-1)) {
+            String mType = mTypeList.get(resID[0]); //validateType(clipText);
+            String mId = String.valueOf(resID[1]);
+            txList.add(mId);
+            glData.setDateList(2, mType.toUpperCase()+mId);
+            //txNum[idx] = "";    //Clear the cedula number
+        //}
 
         Object[] namRes = validateBankCode(txAll);
         idx = (int)namRes[0];
         //Basic.msg("->? "+idx);
 
+//        if (true){
+//            GlobalData.dataDbg[0] = Arrays.toString(txNum)+" : "+txNum.length+" : "+idx;
+//           // return;
+//        }
+
         if(idx >(-1)) {
             glData.setDateList(3, (String)namRes[1]);
             glData.setDateList(5, (String)namRes[2]);
-            txList.add(txNum[idx].replaceAll("\\D",""));
-            txNum[idx] = "";    //Clear the bank number
+            txList.add( ((String) namRes[1]) );
         }
         else {
             String[] bankCode = validateBankName(txList, copyTx);
@@ -131,7 +147,13 @@ public class DataExtracts {
         rawTx = rawTx.replaceAll("ó","o");
         rawTx = rawTx.replaceAll("í","i");
 
-        rawTx = rawTx.replaceAll("(\\+580)|(\\+58\\s)|(\\+58)", "0");
+
+
+        rawTx = rawTx.replaceAll("\\+58(?:\\s*0|\\s+)?", "0");
+
+       // GlobalData.dataDbg[0] = rawTx;
+
+
         //rawTx = rawTx.replaceAll("(\\+580)|(\\+58\\s)|(\\+58)", "0");
 
         Pattern patt = Pattern.compile("(\\n)");
@@ -221,7 +243,7 @@ public class DataExtracts {
         }
         //--------------------------------------------------------------------------------
 
-        //mDebug[0] = rawTx;
+        //GlobalData.dataDbg[0] = rawTx;
 
         //Espacio entre numeros de telefono -----------------------------
         patt = Pattern.compile("((^|[\\s_])(\\d{4})([\\s\\-/])([\\d\\s]{7,9}([\\s_]|$)))");
@@ -291,44 +313,40 @@ public class DataExtracts {
                 break;
             }
         }
-        //mDebug[0] = rawTx;
+        //GlobalData.dataDbg[0] = rawTx;
         //Basic.msg("-> "+text);
         return rawTx;
     }
 
     private static int validatePhoneNumber(String[] list) {
+        String copy = "";
         for (int i = 0; i< list.length ; i++){
             String text = list[i];
             text = text.replaceAll("(^0{2,})", "0");
             text = text.replaceAll("\\D", "");
 
+          //  copy += " "+text+" ";
             //Basic.msg("-> "+text);
             if(ValidCodeArea(text)){
                 return i;
             }
         }
+        //GlobalData.dataDbg[0] = copy ;
+
+
         return -1;
     }
 
     private static boolean ValidCodeArea(String value){
-        for (String text : mAreaList){
+        value = value.replaceAll("^580?", "0");
+        for (String s : mAreaList){
             //Basic.msg("-> "+text.substring(1));
-            if(value.startsWith(text)) {
+            if(value.startsWith(s)) {
                 //Basic.msg("-> "+text);
-                String tlf = value.replaceFirst(text, "");
+                String tlf = value.replaceFirst(s, "");
                 if(tlf.length() == 7) {
                     glData.setDateList(0, value);
                     glData.setDateList(1,  tlf);
-                    return true;
-                }
-            }
-            String copyText = "58"+text.substring(1);
-            if(value.startsWith(copyText)) {
-                //Basic.msg("-> "+text);
-                String tlf = value.replaceFirst(copyText, "");
-                if(tlf.length() == 7) {
-                    glData.setDateList(0, text+tlf);
-                    glData.setDateList(1, tlf);
                     return true;
                 }
             }
@@ -336,60 +354,62 @@ public class DataExtracts {
         return false;
     }
 
-    private static int validateID(String[] list) {
-        int idA = -1;
-        int idB = -1;
-        String copy = "";
-        for (int i = 0; i < list.length; i++) {
+    private static Integer[] validateID(String[] list) {
+        Integer[] res = {0, 0};
 
-            String text = list[i];
-            copy += " "+text+" ";
-            text = text.replaceAll("[^#\\d]", "");
+        // Eliminamos ^ y $, y hacemos el prefijo totalmente opcional
+        Pattern patron1 = Pattern.compile("(?:(\\d)#)?(\\d{5,9})");
 
-            //Basic.msg("id>"+text);
+        for (String text : list) {
+            Matcher matcher = patron1.matcher(text);
 
-            if (text.length() > 5 && text.length() < 11) {
-                if(idA == (-1) ) {
-                    idA = i;
+            // Cambiamos .matches() por .find() para buscar dentro de la cadena
+            if (matcher.find()) {
+                String parte1 = matcher.group(1); // Captura el dígito antes del # (si existe)
+                String parte2 = matcher.group(2); // Captura el número largo (5 a 9 dígitos)
+
+                if (parte1 != null) {
+                    res[0] = Integer.parseInt(parte1);
+                } // Si es null, NO lo sobreescribas con 0 para no borrar un prefijo detectado antes
+
+                if (parte2 != null) {
+                    res[1] = Integer.parseInt(parte2); // Sobreescribe el ID anterior si el nuevo es el correcto
                 }
-                if(text.startsWith("#")){
-                    idB = i;
+
+                // EVALUACIÓN INTELIGENTE: Si el elemento ACTUAL contiene el '#', el sistema se detiene
+                if (parte1 != null) {
                     break;
                 }
             }
         }
-        //GlobalData.dataDbg[0] = copy;
-
-        // Si encuentra resultados en el
-        if (idB == -1) {
-            return idA;
-        } else {
-            return idB;
+        if(res[0] >= mTypeList.size()){
+            res[0] = 0;
         }
+        return res;
     }
 
-    private static String validateType(String rawTx){
-        rawTx = rawTx.replaceAll("[^\\d[a-z]\\s#]","");
-
-        //GlobalData.dataDbg[0] = rawTx ;
-
-        String mType = "v";
-        // Cambia la expresión regular para buscar cualquier símbolo '#' seguido de una letra
-        Pattern p = Pattern.compile("(#([a-z]))");
-
-        for (String newTx : rawTx.split("\\s+")) {
-            Matcher m = p.matcher(newTx);
-            if (m.find()) {
-                for(String s : mTypeList) {
-                    // Verifica si la palabra contiene exactamente la letra seguida del '#' (ej: "v#")
-                    if(newTx.contains("#"+s)) {
-                        return s;
-                    }
-                }
-            }
-        }
-        return mType;
-    }
+//    private static String validateType(String rawTx){
+//        rawTx = rawTx.replaceAll("[^\\d[a-z]\\s#]","");
+//
+//        //GlobalData.dataDbg[0] = rawTx ;
+//
+//        String mType = "v";
+//        // Cambia la expresión regular para buscar cualquier símbolo '#' seguido de una letra
+//        Pattern p = Pattern.compile("(#([a-z]))");
+//
+//        for (String newTx : rawTx.split("\\s+")) {
+//            Matcher m = p.matcher(newTx);
+//            if (m.find()) {
+//                for(String s : mTypeList) {
+//                    // Verifica si la palabra contiene exactamente la letra seguida del '#' (ej: "v#")
+//                    if(newTx.contains("#"+s)) {
+//                        return s;
+//                    }
+//                }
+//            }
+//        }
+//        return mType;
+//    }
 
     private static Object[] validateBankCode(String[] list) {
         for (int i = 0; i< list.length ; i++){
@@ -521,7 +541,7 @@ public class DataExtracts {
         rawTx = rawTx.replaceAll("([^0-9,.bs_|])", "");
         rawTx = rawTx.replaceAll("((^|_)[bs](_|$))", "");
 
-        GlobalData.dataDbg[0] = rawTx;
+        //GlobalData.dataDbg[0] = rawTx;
 
         rawTx = rawTx.replaceAll("_+", "_");
 
