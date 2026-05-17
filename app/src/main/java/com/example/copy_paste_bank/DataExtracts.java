@@ -1,10 +1,13 @@
 package com.example.copy_paste_bank;
 
+import android.os.Build;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class DataExtracts {
     private static final List<String> mTypeList = Arrays.asList("v","j","g","p","e","r","c" );
@@ -44,6 +47,21 @@ public class DataExtracts {
     }
 
     public static void startinProcess(String clipText){
+
+        //Elimina partes no necesarias de numeros de cuentas (Antento a ESTO)
+       clipText = clipText.replaceAll("(?<!\\d)(01\\d{2})(?:[- _]?\\d){16}(?!\\d)", "$1");
+       clipText = clipText.replaceAll("\\b(01\\d{2})(?=.{1,16}\\b)\\*{3,}\\d+\\b", "$1");
+
+
+        clipText = clipText.replaceAll("\\b(04\\d{2})[-./\\s](?:(\\d{3})[-./\\s](\\d{2})[-./\\s](\\d{2})|(\\d{2})[-./\\s](\\d{2})[-./\\s](\\d{3})|(\\d{3})[-./\\s](\\d{4}))\\b", "$1$2$3$4$5$6$7$8$9");
+
+        //GlobalData.dataDbg[0] = clipText;
+
+
+
+        // Busca números que inicien con al menos dos ceros (00) y que tengan en total 4 o más dígitos
+        clipText = clipText.replaceAll("\\b00+\\d{2,}\\b", "");
+
         //--------------------------------------
         //Elimina formatos de fechas
         clipText = clipText.replaceAll("(?:\\s|^)(\\[\\d{1,2}/\\d{1,2}/\\d{2}\\s\\d{1,2}:\\d{1,2}])(?:\\s|$)", "");
@@ -55,46 +73,77 @@ public class DataExtracts {
         //Elimina formatos no utiles
         clipText = clipText.replaceAll("(?<!\\d)(\\d{1,2})/(\\d{1,2})(?!\\d)", "");
 
+
+
         clipText = clipText.replaceAll("\\$", "bs");
 
-        //GlobalData.dataDbg[0] = clipText;
+        clipText = clipText.replaceAll("[.\\h,_\\-](?=\\d{3}(?:[.\\h,_\\- ]|\\b))", "");
+
+        GlobalData.dataDbg[0] = clipText;
 
         clipText = processString(clipText);
+
+
+        //---------------------------------------------------------------------------------------------
+
+        String copyTx = clipText.replaceAll("(\\b04\\d*)[.\\s,_\\-](?=\\d)", "$1");
+
+
+
+        copyTx = copyTx.replaceAll("^580?", "0");
+
+        String[] strRes = validatePhoneNumber(copyTx);
+
+        glData.setDateList(0, strRes[1]+strRes[2]); //Telf + Area
+        glData.setDateList(1,  strRes[1]);
+
+
+        List<String> txList = new ArrayList<>();
+        txList.add( strRes[1]+strRes[2] );
+
+        copyTx = strRes[0];
+
+
+        //----------------------------------------------------------------------------------------------------
+
+
+        String regRif = "(?<![a-z])[-_./\\s]{0,3}(\\d{6,9})_(\\d)";
 
         for (int i = 0; i < mTypeList.size(); i++) {
             String s = mTypeList.get(i);
 
             // Se construye el String de la RegEx de forma dinámica con la palabra actual
-            String regex = "(?<![a-zA-Z])" + Pattern.quote(s) + "(?![a-zA-Z])[-_./\\s]{0,3}(\\d{6,9})";
+            String regex = "(?<=^|_|\\s)(" + Pattern.quote(s) + ")[-_./\\s]{0,3}(\\d{6,9})";
 
             // OPTIMIZACIÓN: Compilar el patrón dentro del bucle es la forma correcta de procesarlo
             Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(clipText);
+            Matcher matcher = pattern.matcher(copyTx);
 
             // Realiza el reemplazo equivalente al replaceAll pero de forma más veloz
-            clipText = matcher.replaceAll(i + "#" + s + "$1");
+            if(i == 1) {
+                copyTx = matcher.replaceAll(i + "#" + s + "$2");
+                //Unificamos los digitos del rif
+                copyTx = copyTx.replaceAll(regRif, "$1$2");            }
+            else {
+                copyTx = matcher.replaceAll(i + "#" + s + "$2");
+            }
         }
-        GlobalData.dataDbg[0] = clipText;
+        copyTx = copyTx.replaceAll("\\s+",  "_");
+         //GlobalData.dataDbg[0] = copyTx;
 
-        //GlobalData.dataDbg[0] = clipText;
+//----------------------------------------------------------------------------------------------------
 
-        String copyTx = clipText.replaceAll("((_\\|_)+)|(\\|+)", " ");
 
-        String mSpl = "\\s+";
+        String mSpl = "_+";
         String[] txAll = copyTx.split(mSpl);
 
-        String[] txNum = copyTx.replaceAll("([^0-9\\s.,#])","").split(mSpl);
+        //GlobalData.dataDbg[0] = copyTx;//Arrays.toString(txNum);
 
-//        for (String tx : txNum){
-///            Basic.msg(,true);
-//        }
+        //-----------------------------------------------------------------------------------
+        String[] txNum = copyTx.replaceAll("([^0-9_.,#])","").split(mSpl);
 
-        List<String> txList = new ArrayList<>();
-        int idx = validatePhoneNumber(txNum);
-        if(idx >(-1)) {
-            txList.add(txNum[idx].replaceAll("\\D",""));
-            txNum[idx] = "";    //Clear the phone number
-        }
+        //GlobalData.dataDbg[0] = Arrays.toString(txNum);
+
 
         Integer[] resID = validateID(txNum);
         //Basic.msg("-Id>? "+idx);
@@ -108,13 +157,11 @@ public class DataExtracts {
         //}
 
         Object[] namRes = validateBankCode(txAll);
-        idx = (int)namRes[0];
+        int idx = (int)namRes[0];
         //Basic.msg("->? "+idx);
 
-//        if (true){
-//            GlobalData.dataDbg[0] = Arrays.toString(txNum)+" : "+txNum.length+" : "+idx;
-//           // return;
-//        }
+       // GlobalData.dataDbg[0] = copyTx;
+
 
         if(idx >(-1)) {
             glData.setDateList(3, (String)namRes[1]);
@@ -130,7 +177,7 @@ public class DataExtracts {
         }
         if(glData.getDate(4).isEmpty()){
 
-            glData.setDateList(4, validateMonto(txList, clipText));
+            glData.setDateList(4, validateMonto(txList, copyTx));
             glData.setDateList(6,  glData.getDate(4).replaceAll("\\.",""));
         }
     }
@@ -147,34 +194,21 @@ public class DataExtracts {
         rawTx = rawTx.replaceAll("ó","o");
         rawTx = rawTx.replaceAll("í","i");
 
-
-
         rawTx = rawTx.replaceAll("\\+58(?:\\s*0|\\s+)?", "0");
 
        // GlobalData.dataDbg[0] = rawTx;
 
-
         //rawTx = rawTx.replaceAll("(\\+580)|(\\+58\\s)|(\\+58)", "0");
 
-        Pattern patt = Pattern.compile("(\\n)");
-        Matcher m = patt.matcher(rawTx);
-
-        if(m.find()) {
-            String gr = m.group(1);
-            //Basic.msg("-> "+gr);
-            assert gr != null;
-            String copyTx = gr.replaceAll("\\n","_|_");
-            rawTx = rawTx.replaceAll(gr, copyTx);
-
-        }
+        rawTx = rawTx.replaceAll("\\n", "_|_");
 
         rawTx = rawTx.replaceAll("(\\s+\\n|\\n\\s+)", " ");
         rawTx = rawTx.replaceAll("\\n", " ");
         rawTx = rawTx.replaceAll("(\\.\\s)|(\\s+)", " ");
 
         //Elimina posibles "o" en numeros -----------------------------------------------
-        patt = Pattern.compile("(o[0-9]{3})");
-        m = patt.matcher(rawTx);
+        Pattern patt = Pattern.compile("(o[0-9]{3})");
+        Matcher m = patt.matcher(rawTx);
 
         if(m.find()) {
             String gr = m.group(1);
@@ -200,6 +234,9 @@ public class DataExtracts {
             rawTx = rawTx.replaceFirst(gr, grCopy);
             m = patt.matcher(rawTx);
         }
+
+
+
         patt = Pattern.compile("(\\w\\.\\s)");
         m = patt.matcher(rawTx);
         while (m.find()) {
@@ -288,18 +325,6 @@ public class DataExtracts {
         //--------------------------------------------------------------
 
 
-//        //Espacio entre cifras ---------------------------------------
-//        patt = Pattern.compile("((^|\\s|[a-z])(\\d{1,3}(([^\\n\\w])\\d{3}){1,3})(\\s|$))");
-//        m = patt.matcher(rawTx);
-//        if (m.find()) {
-//            String gr = m.group(1);
-//            //Basic.msg("-> "+gr);
-//            assert gr != null;
-//            String grCopy = gr.replaceAll("\\s", "");
-//            rawTx = rawTx.replace(gr, " "+grCopy+" ");
-//        }
-//        //----------------------------------------------------------------
-
         for(String mtype : mTypeList) {
             //Basic.msg("-> "+newTx);
             patt = Pattern.compile("([^a-z]"+mtype+"[^a-z])");
@@ -318,23 +343,41 @@ public class DataExtracts {
         return rawTx;
     }
 
-    private static int validatePhoneNumber(String[] list) {
-        String copy = "";
-        for (int i = 0; i< list.length ; i++){
-            String text = list[i];
-            text = text.replaceAll("(^0{2,})", "0");
-            text = text.replaceAll("\\D", "");
+    private static String[] validatePhoneNumber(String rawTx) {
+        String[] res = {rawTx, "", ""};
 
-          //  copy += " "+text+" ";
-            //Basic.msg("-> "+text);
-            if(ValidCodeArea(text)){
-                return i;
+        //GlobalData.dataDbg[0] = rawTx;
+        boolean b = true;
+        for (int i = 0; i < mAreaList.size(); i++) {
+            String s = mAreaList.get(i);
+
+            // Grupo 1: (" + Pattern.quote(s) + ") -> Captura el código de área de la lista
+            // Separador: (?:|\\D{1,3})            -> Tolera los símbolos intermedios (no los captura)
+            // Grupo 2: (\\d{7})                   -> Captura exactamente los 7 dígitos finales
+            String regex = "(" + Pattern.quote(s) + ")(?:|\\D{1,3})(\\d{7})(?!\\d)";
+
+            Pattern p = Pattern.compile(regex);
+            Matcher m = p.matcher(rawTx);
+
+            if (m.find()) {
+                String part1 = m.group(1);  // Ej: "0414"
+                String part2 = m.group(2); // Ej: "3829688"
+                if (b) {
+                    res[1] = part1;
+                    res[2] = part2;
+
+                    b = false;
+                }
+
+                rawTx = rawTx.replaceAll((part1 + part2), "");
+
             }
         }
-        //GlobalData.dataDbg[0] = copy ;
 
+        // 5. Guardamos el texto final procesado
+        res[0] = rawTx;
 
-        return -1;
+        return res;
     }
 
     private static boolean ValidCodeArea(String value){
@@ -355,75 +398,68 @@ public class DataExtracts {
     }
 
     private static Integer[] validateID(String[] list) {
-        Integer[] res = {0, 0};
+
+        List<Integer[]> listRes = new ArrayList<>();
 
         // Eliminamos ^ y $, y hacemos el prefijo totalmente opcional
-        Pattern patron1 = Pattern.compile("(?:(\\d)#)?(\\d{5,9})");
+        Pattern patron1 = Pattern.compile("(?<=^|\\D)(?:(\\d)#)?(\\d{6,9})(?!\\d)");
+     //   GlobalData.dataDbg[0] = Arrays.toString(list);
+
 
         for (String text : list) {
+            Integer[] res = {0, 0};
+
             Matcher matcher = patron1.matcher(text);
 
             // Cambiamos .matches() por .find() para buscar dentro de la cadena
             if (matcher.find()) {
-                String parte1 = matcher.group(1); // Captura el dígito antes del # (si existe)
-                String parte2 = matcher.group(2); // Captura el número largo (5 a 9 dígitos)
+                String parte1 = matcher.group(1); // Si el texto es "25681650", parte1 será NULL
+                String parte2 = matcher.group(2); // Siempre tendrá el número largo "25681650"
 
                 if (parte1 != null) {
                     res[0] = Integer.parseInt(parte1);
-                } // Si es null, NO lo sobreescribas con 0 para no borrar un prefijo detectado antes
+                } // Si es null, res[0] se queda en 0 por defecto de forma segura
 
                 if (parte2 != null) {
-                    res[1] = Integer.parseInt(parte2); // Sobreescribe el ID anterior si el nuevo es el correcto
+                    res[1] = Integer.parseInt(parte2);
                 }
 
-                // EVALUACIÓN INTELIGENTE: Si el elemento ACTUAL contiene el '#', el sistema se detiene
+                listRes.add(res);
+
+                // Tu evaluación inteligente sigue funcionando:
+                // Si tenía la parte del '#', parte1 no es null y rompe el ciclo.
                 if (parte1 != null) {
+                    listRes.clear();
+                    listRes.add(res);
                     break;
                 }
             }
         }
-        if(res[0] >= mTypeList.size()){
-            res[0] = 0;
+        if (!listRes.isEmpty()) {
+            Integer[] res = listRes.get(0);
+            if (res[0] >= mTypeList.size()) {
+                res[0] = 0;
+            }
+            return res;
         }
-        return res;
+        else {
+            return (new Integer[]{0, 0});
+        }
     }
 
-//    private static String validateType(String rawTx){
-//        rawTx = rawTx.replaceAll("[^\\d[a-z]\\s#]","");
-//
-//        //GlobalData.dataDbg[0] = rawTx ;
-//
-//        String mType = "v";
-//        // Cambia la expresión regular para buscar cualquier símbolo '#' seguido de una letra
-//        Pattern p = Pattern.compile("(#([a-z]))");
-//
-//        for (String newTx : rawTx.split("\\s+")) {
-//            Matcher m = p.matcher(newTx);
-//            if (m.find()) {
-//                for(String s : mTypeList) {
-//                    // Verifica si la palabra contiene exactamente la letra seguida del '#' (ej: "v#")
-//                    if(newTx.contains("#"+s)) {
-//                        return s;
-//                    }
-//                }
-//            }
-//        }
-//        return mType;
-//    }
-
     private static Object[] validateBankCode(String[] list) {
+
+       //GlobalData.dataDbg[0] = Arrays.toString(list);
+        Pattern p = Pattern.compile("(?<=^|\\D)(01\\d{2})(?=$|\\D)");
         for (int i = 0; i< list.length ; i++){
             String text = list[i];
 
-            text = text.replaceAll("\\D", "");
-            if(text.isEmpty()){
-                continue;
-            }
-            //Basic.msg("-> "+text);
-            if(text.length() == 4 && text.startsWith("01")){
+            Matcher m = p.matcher(text);
+            if (m.find()) {
+              String gr = m.group(1);
                 for(String mCode : mBankList){
                     String code = mCode.split(";")[0];
-                    if(code.equals(text)){
+                    if(code.equals(gr)){
                         glData.setDateList(3, code);
                         return new Object[]{i,code,mCode.split(";")[3]};
                     }
@@ -441,30 +477,20 @@ public class DataExtracts {
                 rawTx = rawTx.replaceAll("(^" + Pattern.quote(newTx) + "$)", "");
             }
 
-            rawTx = rawTx.replaceAll("\\s","_");
+            rawTx = rawTx.replaceAll("[\\s|_-]+","_");
 
 
             rawTx = rawTx.replaceAll("(^_)|(_$)","");
 
-        //GlobalData.dataDbg[0] = rawTx ;
-
         //Basic.msg("->? "+text);
             for (String newTx : mBankList) {
                 String[] strList = newTx.split(";");
-                String pattern = "\\b" + Pattern.quote(rawTx) + "\\b";
+                String pattern = "(?<=^|_)" + Pattern.quote(rawTx) + "(?=$|_)";
                 Pattern p = Pattern.compile(pattern);
                 Matcher m = p.matcher(strList[1].toLowerCase());
                 if (m.find()) {
                     return new String[]{strList[0], strList[3]};
                 }
-//                for (String ttx : rawTx.split("_")) {
-//                    pattern = "\\b" + Pattern.quote(ttx) + "\\b";
-//                    p = Pattern.compile(pattern);
-//                    m = p.matcher(strList[1].toLowerCase());
-//                    if (m.find()) {
-//                        return new String[]{strList[0], strList[3]};
-//                    }
-//                }
                 for (String ttx : strList[1].toLowerCase().split(" ")) {
                     if(rawTx.contains(ttx)){
                         //mDebug[0] = ttx;
@@ -474,20 +500,12 @@ public class DataExtracts {
             }
             for (String newTx : mBankList) {
                 String[] strList = newTx.split(";");
-                String pattern = "\\b" + Pattern.quote(rawTx) + "\\b";
+                String pattern = "(?<=^|_)" + Pattern.quote(rawTx) + "(?=$|_)";
                 Pattern p = Pattern.compile(pattern);
                 Matcher m = p.matcher(strList[2].toLowerCase());
                 if (m.find()) {
                     return new String[]{strList[0], strList[3]};
                 }
-//                for (String ttx : rawTx.split("_")) {
-//                    pattern = "\\b" + Pattern.quote(ttx) + "\\b";
-//                    p = Pattern.compile(pattern);
-//                    m = p.matcher(strList[2].toLowerCase());
-//                    if (m.find()) {
-//                        return new String[]{strList[0], strList[3]};
-//                    }
-//                }
                 for (String ttx : strList[2].toLowerCase().split(" ")) {
                     if(rawTx.contains(ttx)){
                         //mDebug[0] = ttx;
@@ -504,44 +522,32 @@ public class DataExtracts {
         String[] mony = {"monto_(bs.)","monto_bs","bs","bs.","bolos","bsf","bolivares","monto", "dolar", "verdes", "dolares"};
 
         rawTx = rawTx.replaceAll("([\\n\\s])", "_");
+
+        for(String s : mony){
+            rawTx = rawTx.replaceAll("[^a-z\\d]"+s+"[^a-z\\d]", "_bs_");
+        }
+
         //GlobalData.dataDbg[0] = rawTx;
 
-        for(String newTx:mony){
-            rawTx = rawTx.replaceAll("[^a-z\\d]"+newTx+"[^a-z\\d]", "_bs_");
-        }
+        rawTx = rawTx.replaceAll("\\d#[a-z]", "");
 
-        Pattern patt = Pattern.compile("((\\d{4})([^a-z\\d])(\\d{3})([^a-z\\d])(\\d{4}))");
-        Matcher matc = patt.matcher(rawTx);
+        Pattern patt;
+        Matcher matc;
 
-        if(matc.find()){
-            String gr = matc.group(1);
-            assert gr != null;
-            String grCopy = gr.replaceAll("\\D", "");
-            //Basic.msg("-> "+grCopy);
-            for (String newTx : numList) {
-                //Basic.msg("newTx-"+txCopy);
-                if (newTx.equals(grCopy)) {
-                    rawTx = rawTx.replace(gr, "");
-                    break;
-                }
-            }
-            //Basic.msg("-> "+grCopy);
-        }
-        for (String txTest : rawTx.split("_")) {
-            String txCopy = txTest.replaceAll("\\D", "");
-            for (String newTx : numList) {
-                //Basic.msg("newTx-"+txCopy);
-                if (newTx.equals(txCopy)) {
-                    rawTx = rawTx.replace(txTest, "");
-                    break;
-                }
-            }
-        }
+        // 1. Escapar y unir los números con el operador OR (|)
+        String alternancias = numList.stream()
+                .map(Pattern::quote)
+                .collect(Collectors.joining("|"));
+
+        // 2. Crear el patrón con límites de palabra (\b)
+        patt = Pattern.compile("(?<=^|_)(" + alternancias + ")(?=$|_)");
+        matc = patt.matcher(rawTx);
+
+        // 3. Eliminar los valores y limpiar espacios dobles sobrantes
+        rawTx = matc.replaceAll("").replaceAll("\\s+", " ").trim();
 
         rawTx = rawTx.replaceAll("([^0-9,.bs_|])", "");
         rawTx = rawTx.replaceAll("((^|_)[bs](_|$))", "");
-
-        //GlobalData.dataDbg[0] = rawTx;
 
         rawTx = rawTx.replaceAll("_+", "_");
 
@@ -554,26 +560,30 @@ public class DataExtracts {
             String grCopy = gr.replaceAll("\\D", ""); // solo dígitos
 
             // Si está en la lista negra, eliminarlo completamente
-            boolean encontradoEnLista = false;
+            boolean b = false;
             for (String newTx : numList) {
                 if (newTx.equals(grCopy)) {
                     rawTx = rawTx.replaceFirst(Pattern.quote(gr), "");
-                    encontradoEnLista = true;
+                    b = true;
                     break;
                 }
             }
 
-            if (!encontradoEnLista) {
-                // Limpiar separadores y normalizar
-                String cleaned = gr.replaceAll("(^_+)|(_+$)", ""); // quita _ al inicio/fin
-                cleaned = cleaned.replaceAll("_", ".");           // _ → .
-                cleaned = cleaned.replaceAll("^0+(\\d)", "$1");   // quita ceros a la izquierda (mejor que tu regex)
+            //GlobalData.dataDbg[0] = rawTx;
 
-                if (!cleaned.isEmpty()) {
-                    rawTx = rawTx.replaceFirst(Pattern.quote(gr), cleaned);
+            if (!b) {
+                // Limpiar separadores y normalizar
+                String clan = gr.replaceAll("(^_+)|(_+$)", ""); // quita _ al inicio/fin
+                clan = clan.replaceAll("_", ".");           // _ → .
+                clan = clan.replaceAll("^0+(\\d)", "$1");   // quita ceros a la izquierda (mejor que tu regex)
+
+                if (!clan.isEmpty()) {
+                    rawTx = rawTx.replaceFirst(Pattern.quote(gr), clan);
                 }
             }
         }
+
+        //GlobalData.dataDbg[0] = rawTx;
 
         rawTx = rawTx.replaceAll("bs", "_bs_");
         //Basic.msg("-> "+rawTx);
@@ -637,6 +647,7 @@ public class DataExtracts {
         return "0.00";
     }
     private static String getSimple(String rawTx) {
+
         int count = rawTx.replaceAll("[^\\n]", "").length();
         if(count == 2 || count == 3) {
             boolean res = true;
@@ -648,20 +659,12 @@ public class DataExtracts {
                     res = false;
                     break;
                 }
-                Pattern patt = Pattern.compile("(([a-z]{2,})(\\s+)([a-z]{2,}))");
-                Matcher matc = patt.matcher(newTx);
-                while (matc.find()) {
-                    String gr = matc.group(1);
-                    //Basic.msg("-> "+gr);
-                    assert gr != null;
-                    String grCopy = gr.replaceAll("\\s", "_");
-                    newTx = newTx.replaceFirst(gr, grCopy);
-                    matc = patt.matcher(newTx);
-                }
+                newTx = newTx.replaceAll("([a-z]{2,})\\s+([a-z]{2,})", "$1_$2");
+               // GlobalData.dataDbg[0] = Arrays.toString(rawTx.split("\\n"));
 
                 // ==================== CONVERTIR FORMATO EN → ES ====================
-                patt = Pattern.compile("([0-9,]+(?:\\.[0-9]{1,2})?)$");
-                matc = patt.matcher(newTx);
+                Pattern patt = Pattern.compile("([0-9,]+(?:\\.[0-9]{1,2})?)$");
+                Matcher matc = patt.matcher(newTx);
 
                 if (matc.find()) {
                     String numero = matc.group(1);

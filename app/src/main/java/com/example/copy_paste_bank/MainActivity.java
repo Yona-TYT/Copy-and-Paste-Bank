@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.TextWatcher;
+import android.text.method.ScrollingMovementMethod;
 import android.text.style.ForegroundColorSpan;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -152,6 +153,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mButt8.setOnLongClickListener(this);
 
         mInput2.setOnClickListener(this);
+
+        //Debug
+        mText5.setMovementMethod(new ScrollingMovementMethod());
 
         new FilesManager(this);
 
